@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block pagebody %}
+
+
+
+
+    Welcome utente loggatissimo!
+    Here you can see our films.
+    <ul>
+        {% for u in movies %}
+            <li> {{ u }} </li>
+        {% endfor %}
+    </ul>
+
+
+
+
+
+
+
+{% endblock %}

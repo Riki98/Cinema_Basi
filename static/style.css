@@ -1,0 +1,38 @@
+html{ height:100%; }
+body{ min-height:100%; padding:0; margin:0; position:relative; }
+header{ height:50px; background: #ffffff; }
+footer{ background: #2a2a2a; }
+nav{ background: #2a2a2a; }
+
+/* Trick: */
+body {
+  position: relative;
+}
+
+body::after {
+  content: '';
+  display: block;
+  height: 50px; /* Set same as footer's height */
+}
+
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 130px;
+}
+
+h1 {
+  font-size: 25px;
+  color: whitesmoke;
+}
+
+h2 {
+  font-size: 20px;
+    color: whitesmoke;
+}
+
+.textwhilefont{
+    font-family: "Lucida Console", Courier, monospace;
+    color: whitesmoke;
+}
