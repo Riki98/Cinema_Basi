@@ -6,7 +6,7 @@
 Basica, sviluppata con implementazioni di Bootstrap. -> in sviluppo
 
 
-##### *Parte backend:*
+#### *Parte backend:*
 
 Sviluppata con Python, con il supporto di diverse librerie Flask, tra cui Flask-Login, che permette con la validazione di diversi utenti.  -> in sviluppo
 
