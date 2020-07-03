@@ -1,5 +1,5 @@
-Cinema Basi
-Progetto di un database di un cinema con relative pagine web.
+# Cinema Basi
+## Progetto di un database di un cinema con relative pagine web.
 Parte frontend:
 
 Basica, sviluppata con implementazioni di Bootstrap.
