@@ -1,11 +1,14 @@
 # Cinema Basi
-## Progetto di un database di un cinema con relative pagine web.
-Parte frontend:
+### Progetto di un database di un cinema con relative pagine web.
 
-Basica, sviluppata con implementazioni di Bootstrap.
+#### *Parte frontend:*
+
+Basica, sviluppata con implementazioni di Bootstrap. -> in sviluppo
 
 
-Parte backend:
+##### *Parte backend:*
 
-Sviluppata con Python, con il supporto di diverse librerie Flask, tra cui Flask-Login, che permette con la validazione di diversi utenti.
-DBMS: Postresql
+Sviluppata con Python, con il supporto di diverse librerie Flask, tra cui Flask-Login, che permette con la validazione di diversi utenti.  -> in sviluppo
+
+
+**_DBMS: Postresql_**
