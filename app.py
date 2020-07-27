@@ -20,80 +20,80 @@ login_manager.init_app(app)
 metadata = MetaData()
 
 film = Table('film', metadata,
-             Column('idfilm', int, primary_key=True),
+             Column('idfilm', Integer, primary_key=True),
              Column('titolo', String),
-             Column('is3d', bool),
+             Column('is3d', Boolean),
              Column('genere', String),
              Column('trama', String),
              Column('datainizio', Date),
              Column('datafine', Date),
-             Column('durata', int),
+             Column('durata', Integer),
              Column('Paese', String),
-             Column('Anno', int),
-             Column('vm', int)
+             Column('Anno', Integer),
+             Column('vm', Integer)
              )
 
 utente = Table('utente', metadata,
-               Column('email', int),
-               Column('idutente', int, primary_key=True),
+               Column('email', Integer),
+               Column('idutente', Integer, primary_key=True),
                Column('password', String),
                Column('nome', String),
                Column('cognome', String),
                Column('datanascita', Date),
                Column('sesso', String),
-               Column('numfigli', int),
+               Column('numfigli', Integer),
                Column('residenza', String),
                Column('numcell', String)
                )
 
 admin = Table('admin', metadata,
-              Column('idadmin', int, primary_key=True),
+              Column('idadmin', Integer, primary_key=True),
               Column('email', String),
               Column('password', String)
               )
 
 sala = Table('sala', metadata,
-             Column('idsala', int, primary_key=True),
-             Column('numposti', int),
-             Column('is3d', bool)
+             Column('idsala', Integer, primary_key=True),
+             Column('numposti', Integer),
+             Column('is3d', Boolean)
              )
 
 registafilm = Table('registafilm', metadata,
-                    Column('idregista', int, foreign_key=True),
-                    Column('idfilm', int, foreign_key=True)
+                    Column('idregista', Integer, foreign_key=True),
+                    Column('idfilm', Integer, foreign_key=True)
                     )
 
 proiezioni = Table('proiezioni', metadata,
                    Column('orario', datetime.time),
-                   Column('idsala', int),
-                   Column('idfilm', int),
-                   Column('idproiezione', int, primary_key=True),
+                   Column('idsala', Integer),
+                   Column('idfilm', Integer),
+                   Column('idproiezione', Integer, primary_key=True),
                    Column('data', datetime.date),
                    )
 
 posto = Table('posto', metadata,
-              Column('idposto', int, primary_key=True),
+              Column('idposto', Integer, primary_key=True),
               Column('fila', String),
-              Column('prenotato', bool),
-              Column('idsala', int),
-              Column('numero', int)
+              Column('prenotato', Boolean),
+              Column('idsala', Integer),
+              Column('numero', Integer)
               )
 
 #non mi ricordo a cosa serva questa tabella
 persona = Table('persona', metadata,
-              Column('idpersona', int, primary_key=True),
+              Column('idpersona', Integer, primary_key=True),
               Column('nomecognome', String)
               )
 
 biglietto = Table('biglietto', metadata,
-                  Column('idposto', int),
-                  Column('idproiezione', int),
-                  Column('idutente', int)
+                  Column('idposto', Integer),
+                  Column('idproiezione', Integer),
+                  Column('idutente', Integer)
                   )
 
 attorefilm = Table('attorefilm', metadata,
-                   Column('idattore', int),
-                   Column('idfilm', int)
+                   Column('idattore', Integer),
+                   Column('idfilm', Integer)
                    )
 
 metadata.create_all(engine)
@@ -123,6 +123,20 @@ class User(UserMixin):
     def get_id(self):
         return self.id
 
+class Date:
+    def __init__(self):
+        self.day = 0
+        self.month = 0
+        self.year = 0
+
+    def set_day(self, day):
+        self.day = day
+
+    def set_month(self, month):
+        self.month = month
+
+    def set_year(self, year):
+        self.year = year
 
 # fun: permette di serializzare i dati per le conversioni json
 def alchemyencoder(obj):
@@ -149,13 +163,6 @@ def load_user(user_email):
 # login_manager = LoginManager()
 # login_manager.init_app(app)
 
-# class User(UserMixin):
-# costruttore
-# def __init__(self, id, email, pwd):
-#    self.id = id
-#    self.email = email
-#   self.pwd = pwd
-
 # pagina principale per utenti non loggati
 @app.route('/')
 def home_page():
@@ -165,14 +172,10 @@ def home_page():
 
 
 # stessa pagina ma per utente loggato, permette nuove funzioni
-def home_loggeg():
+def home_logged():
     films = conn.execute("select titolo from film")
     return render_template('index.html', movies=films, loginbtn=false)
 
-
-# @app.route('/')
-# def home_page():
-#    return render_template('prenotazione.html')
 
 # ajax richiesta giorni per film
 @app.route('/selectday', methods=['POST'])
