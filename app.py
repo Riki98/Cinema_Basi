@@ -64,11 +64,11 @@ registafilm = Table('registafilm', metadata,
                     )
 
 proiezioni = Table('proiezioni', metadata,
-                   Column('orario', datetime.time),
+                   Column('orario', Time),
                    Column('idsala', Integer),
                    Column('idfilm', Integer),
                    Column('idproiezione', Integer, primary_key=True),
-                   Column('data', datetime.date),
+                   Column('data', Date),
                    )
 
 posto = Table('posto', metadata,
@@ -123,20 +123,20 @@ class User(UserMixin):
     def get_id(self):
         return self.id
 
-class Date:
-    def __init__(self):
-        self.day = 0
-        self.month = 0
-        self.year = 0
-
-    def set_day(self, day):
-        self.day = day
-
-    def set_month(self, month):
-        self.month = month
-
-    def set_year(self, year):
-        self.year = year
+#class Date:
+#    def __init__(self):
+#        self.day = 0
+#        self.month = 0
+#        self.year = 0
+#
+#    def set_day(self, day):
+#        self.day = day
+#
+#    def set_month(self, month):
+#        self.month = month
+#
+#    def set_year(self, year):
+#        self.year = year
 
 # fun: permette di serializzare i dati per le conversioni json
 def alchemyencoder(obj):
