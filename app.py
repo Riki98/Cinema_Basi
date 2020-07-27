@@ -20,31 +20,81 @@ login_manager.init_app(app)
 metadata = MetaData()
 
 film = Table('film', metadata,
-             Column('idfilm', Integer, primary_key=True),
+             Column('idfilm', int, primary_key=True),
              Column('titolo', String),
-             Column('is3d', Boolean),
+             Column('is3d', bool),
              Column('genere', String),
              Column('trama', String),
              Column('datainizio', Date),
              Column('datafine', Date),
-             Column('durata', Integer),
+             Column('durata', int),
              Column('Paese', String),
-             Column('Anno', Integer),
-             Column('vm', Integer)
+             Column('Anno', int),
+             Column('vm', int)
              )
 
 utente = Table('utente', metadata,
-               Column('email', Integer),
-               Column('idutente', Integer, primary_key=True),
+               Column('email', int),
+               Column('idutente', int, primary_key=True),
                Column('password', String),
                Column('nome', String),
                Column('cognome', String),
                Column('datanascita', Date),
                Column('sesso', String),
-               Column('numfigli', Integer),
+               Column('numfigli', int),
                Column('residenza', String),
                Column('numcell', String)
                )
+
+admin = Table('admin', metadata,
+              Column('idadmin', int, primary_key=True),
+              Column('email', String),
+              Column('password', String)
+              )
+
+sala = Table('sala', metadata,
+             Column('idsala', int, primary_key=True),
+             Column('numposti', int),
+             Column('is3d', bool)
+             )
+
+registafilm = Table('registafilm', metadata,
+                    Column('idregista', int, foreign_key=True),
+                    Column('idfilm', int, foreign_key=True)
+                    )
+
+proiezioni = Table('proiezioni', metadata,
+                   Column('orario', datetime.time),
+                   Column('idsala', int),
+                   Column('idfilm', int),
+                   Column('idproiezione', int, primary_key=True),
+                   Column('data', datetime.date),
+                   )
+
+posto = Table('posto', metadata,
+              Column('idposto', int, primary_key=True),
+              Column('fila', String),
+              Column('prenotato', bool),
+              Column('idsala', int),
+              Column('numero', int)
+              )
+
+#non mi ricordo a cosa serva questa tabella
+persona = Table('persona', metadata,
+              Column('idpersona', int, primary_key=True),
+              Column('nomecognome', String)
+              )
+
+biglietto = Table('biglietto', metadata,
+                  Column('idposto', int),
+                  Column('idproiezione', int),
+                  Column('idutente', int)
+                  )
+
+attorefilm = Table('attorefilm', metadata,
+                   Column('idattore', int),
+                   Column('idfilm', int)
+                   )
 
 metadata.create_all(engine)
 
@@ -160,8 +210,7 @@ def prenotazione():
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
-#login prof
+    # login prof
 
     if request.method == 'POST':
         rs = conn.execute(utente.select(text('email')).where(utente.c.email == request.form['mailLogin']))
@@ -173,6 +222,7 @@ def login():
             return render_template('index.html')
     else:
         return render_template('index.html')
+
 
 # login nostro
 
