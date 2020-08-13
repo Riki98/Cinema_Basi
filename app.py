@@ -48,6 +48,56 @@ utente = Table('utente', metadata,
                Column('numcell', String)
                )
 
+admin = Table('admin', metadata,
+              Column('idadmin', Integer, primary_key=True),
+              Column('email', String),
+              Column('password', String)
+              )
+
+sala = Table('sala', metadata,
+             Column('idsala', Integer, primary_key=True),
+             Column('numposti', Integer),
+             Column('is3d', Boolean)
+             )
+
+registafilm = Table('registafilm', metadata,
+                    Column('idregista', Integer, foreign_key=True),
+                    Column('idfilm', Integer, foreign_key=True)
+                    )
+
+proiezioni = Table('proiezioni', metadata,
+                   Column('orario', Time),
+                   Column('idsala', Integer),
+                   Column('idfilm', Integer),
+                   Column('idproiezione', Integer, primary_key=True),
+                   Column('data', Date),
+                   )
+
+posto = Table('posto', metadata,
+              Column('idposto', Integer, primary_key=True),
+              Column('fila', String),
+              Column('prenotato', Boolean),
+              Column('idsala', Integer),
+              Column('numero', Integer)
+              )
+
+#non mi ricordo a cosa serva questa tabella
+persona = Table('persona', metadata,
+              Column('idpersona', Integer, primary_key=True),
+              Column('nomecognome', String)
+              )
+
+biglietto = Table('biglietto', metadata,
+                  Column('idposto', Integer),
+                  Column('idproiezione', Integer),
+                  Column('idutente', Integer)
+                  )
+
+attorefilm = Table('attorefilm', metadata,
+                   Column('idattore', Integer),
+                   Column('idfilm', Integer)
+                   )
+
 metadata.create_all(engine)
 
 # apertura connessione al DB
@@ -75,6 +125,20 @@ class User(UserMixin):
     def get_id(self):
         return self.id
 
+#class Date:
+#    def __init__(self):
+#        self.day = 0
+#        self.month = 0
+#        self.year = 0
+#
+#    def set_day(self, day):
+#        self.day = day
+#
+#    def set_month(self, month):
+#        self.month = month
+#
+#    def set_year(self, year):
+#        self.year = year
 
 # fun: permette di serializzare i dati per le conversioni json
 def alchemyencoder(obj):
@@ -101,13 +165,6 @@ def load_user(user_email):
 # login_manager = LoginManager()
 # login_manager.init_app(app)
 
-# class User(UserMixin):
-# costruttore
-# def __init__(self, id, email, pwd):
-#    self.id = id
-#    self.email = email
-#   self.pwd = pwd
-
 # pagina principale per utenti non loggati
 @app.route('/')
 def home_page():
@@ -117,14 +174,10 @@ def home_page():
 
 
 # stessa pagina ma per utente loggato, permette nuove funzioni
-def home_loggeg():
+def home_logged():
     films = conn.execute("select titolo from film")
     return render_template('index.html', movies=films, loginbtn=false)
 
-
-# @app.route('/')
-# def home_page():
-#    return render_template('prenotazione.html')
 
 # ajax richiesta giorni per film
 @app.route('/selectday', methods=['POST'])
@@ -162,8 +215,7 @@ def prenotazione():
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
-#login prof
+    # login prof
 
     if request.method == 'POST':
         rs = conn.execute(utente.select(text('email')).where(utente.c.email == request.form['mailLogin']))
@@ -175,6 +227,7 @@ def login():
             return render_template('index.html')
     else:
         return render_template('index.html')
+
 
 # login nostro
 
