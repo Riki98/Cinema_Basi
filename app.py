@@ -1,3 +1,4 @@
+# authors Giana Corò Farhan
 import flask
 from flask import Flask, render_template, request, jsonify, json, url_for
 # from flask_wtf import FlaskForm
