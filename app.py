@@ -11,7 +11,8 @@ from sqlalchemy.sql.functions import user
 
 app = Flask(__name__)
 
-engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
+#engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
+engine = create_engine('postgresql+psycopg2://batman@localhost:5432/cinema_basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 login_manager = LoginManager()
