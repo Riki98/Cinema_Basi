@@ -1,21 +1,21 @@
-from flask import Flask, render_template, request, jsonify, json, url_for
 # from flask_wtf import FlaskForm
 # from wtforms import StringField, PasswordField, BooleanField, SubmitField
 # from wtforms.validators import DataRequired
-import decimal, datetime
-
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask import Flask, render_template, request, json, redirect, url_for
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from sqlalchemy import *
-from sqlalchemy.sql.functions import user
+import datetime
+import decimal
 
 app = Flask(__name__)
 
+# ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 #engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
 engine = create_engine('postgresql+psycopg2://batman@localhost:5432/cinema_basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
-login_manager = LoginManager()
-login_manager.init_app(app)
+#login_manager = LoginManager()
+#login_manager.init_app(app)
 
 metadata = MetaData()
 
@@ -34,7 +34,7 @@ film = Table('film', metadata,
              )
 
 utente = Table('utente', metadata,
-               Column('email', Integer),
+               Column('email', String),
                Column('idutente', Integer, primary_key=True),
                Column('password', String),
                Column('nome', String),
@@ -102,41 +102,27 @@ metadata.create_all(engine)
 conn = engine.connect()
 
 
-# classe utente per flask_login
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
 class User(UserMixin):
     def __init__(self, id, email, pwd):
         self.id = id
         self.email = email
         self.pwd = pwd
 
-    def is_active(self):
-        # Here you should write whatever the code is
-        # that checks the database if your user is active
-        return self.active
 
-    def is_anonymous(self):
-        return False
-
-    def is_authenticated(self):
-        return True
-
-    def get_id(self):
-        return self.id
-
-#class Date:
-#    def __init__(self):
-#        self.day = 0
-#        self.month = 0
-#        self.year = 0
-#
-#    def set_day(self, day):
-#        self.day = day
-#
-#    def set_month(self, month):
-#        self.month = month
-#
-#    def set_year(self, year):
-#        self.year = year
+@login_manager.user_loader
+def load_user(user_id):
+    user = conn.execute(select([utente]).where(utente.c.idutente == user_id)).fetchone()
+    if user is None:
+        return None
+    else:
+        real_id     = int(user[1])
+        real_email  = str(user[0]).strip()
+        real_pwd    = str(user[2]).strip()
+        return User(real_id, real_email, real_pwd)
 
 # fun: permette di serializzare i dati per le conversioni json
 def alchemyencoder(obj):
@@ -149,20 +135,6 @@ def alchemyencoder(obj):
         return float(obj)
 
 
-# """dovrebbe""" restituire le info di un utente interrogando per mail
-@login_manager.user_loader
-def load_user(user_email):
-    authconn = engine.connect()
-    rs = conn.execute('select * from utente where email="' + user_email + '"')
-    user = rs.fetchone()
-    authconn.close()
-    return User(user.id, user.email, user.pwd)
-
-
-# app.config['1599']='secret'
-# login_manager = LoginManager()
-# login_manager.init_app(app)
-
 # pagina principale per utenti non loggati
 @app.route('/')
 def home_page():
@@ -172,6 +144,8 @@ def home_page():
 
 
 # stessa pagina ma per utente loggato, permette nuove funzioni
+@app.route('/logged-bad-rendering')
+@login_required
 def home_logged():
     films = conn.execute("select titolo from film")
     return render_template('index.html', movies=films, loginbtn=false)
@@ -213,39 +187,25 @@ def prenotazione():
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # login prof
-
     if request.method == 'POST':
-        rs = conn.execute(utente.select(text('email')).where(utente.c.email == request.form['mailLogin']))
-        real_pwd = rs.fetchone()['password']
-        if request.form['passwordLogin'] == real_pwd:
-            login_user(load_user(request.form['mailLogin']))
-            return render_template('user.html')
+        form_email = str(request.form['mailLogin'])
+        form_passw = str(request.form['passwordLogin'])
+
+        user = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
+        if user is None:
+            return redirect(url_for("home_page"))
+
+        real_id     = int(user[1])
+        real_email  = str(user[0]).strip()
+        real_pwd    = str(user[2]).strip()
+
+        if form_passw == real_pwd:
+            login_user(User(real_id, real_email, real_pwd))
+            return redirect(url_for("home_logged"))
         else:
-            return render_template('index.html')
+            return redirect(url_for("home_page"))
     else:
         return render_template('index.html')
-
-
-# login nostro
-
-# maillogin = request.form["mailLogin"]
-# requser = select([utente.c.email]).where(utente.c.email == maillogin)
-# print(requser)
-# passwordLogin = request.form["passwordLogin"]
-# reqpass = select([utente.c.password]).where(utente.c.password == maillogin)
-# print(reqpass)
-
-# login_user(user)
-# flask.flash('Logged in successfully')
-# films = conn.execute("select titolo from film")
-
-# if maillogin == conn.execute(requser) and passwordLogin == conn.execute(reqpass):
-#  log = true
-# return render_template('index.html', movies=films, logged=log)
-#  else:
-#   return render_template('index.html')
-
 
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
@@ -288,9 +248,6 @@ def logout():
     logout_user()
     return render_template("index.html")
 
-
-# < td class ="sala-icon" fila="C" numero="1" color-posto="green" > < img id id src="{{ url_for('static', filename='img/armchair-green.png') }}" / >
-# < img src="{{ url_for('static', filename='img/armchair.png') }}" /> </td>
 
 if __name__ == '__main__':
     app.run()
