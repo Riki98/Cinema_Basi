@@ -239,7 +239,7 @@ def register():
     ])
     films = conn.execute("select titolo from film")
     log = true
-    return render_template('index.html', movies=films, logged=log);
+    return render_template('index.html', movies=films, logged=log)
 
 
 @app.route('/logout')
