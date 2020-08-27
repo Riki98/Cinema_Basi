@@ -1,21 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/style.css') }}">
+    <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-        crossorigin="anonymous"></script>
-    <script src="{{ url_for('static', filename='js/jquery-3.5.0.js') }}" ></script>
-
     <title>Cinema_Basi</title>
 </head>
 <body>
@@ -33,56 +22,51 @@
                 <div class="row d-flex justify-content-around">
                     <div class="dropdown">
                         <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="titolo">
-                            <p id="dropdown-title">Film</p>
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Film
                         </a>
 
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                        <form id="titleform" class="form">
                             {% for titolo in movies %}
-                                <a class="dropdown-item titlefilm" href="#">{{ titolo[0] }}</a>
+                            <a class="dropdown-item" href="#">{{ titolo[0] }}</a>
                             {% endfor %}
-                        </form>
                         </div>
                     </div>
                     <div class="dropdown">
                         <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <p id="dropdown-day">Giorno</p>
+                            Giorno
                         </a>
 
-                        <div class="dropdown-menu" id="dayfilm" aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                             <!-- CODICE IN ARRIVO -->
                         </div>
                     </div>
                     <div class="dropdown">
-                        <a class="btn btn-secondary dropdown-toggle" role="button" id="dropdownMenuLink"
+                        <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <p id="dropdown-time">Orario</p>
+                            Orario
                         </a>
 
-                        <div class="dropdown-menu" id="timefilm" aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                             <!-- CODICE IN ARRIVO -->
                         </div>
                     </div>
-                    {% if log != 0 %}
-                    <button type="button" class="btn btn-warning align-right" id="prenotazione">Prenota</button>
-                    {% endif %}
+
+                    <button type="button" class="btn btn-warning align-right">Prenota</button>
                 </div>
             </div>
             <div class="col-2"></div>
             <div class="col-2">
                 <div class="row d-flex justify-content-around">
-                {% if log == 0 %}
-                <!-- Button trigger modal SIGN IN -->
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalLogin">
-                    Sign In
-                </button>
-                <!-- Button trigger modal SIGN UP -->
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalRegistration">
-                    Sign Up
-                </button>
-                {% endif %}
+                    <!-- Button trigger modal SIGN IN -->
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalLogin">
+                        Sign In
+                    </button>
+                    <!-- Button trigger modal SIGN UP -->
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalRegistration">
+                        Sign Up
+                    </button>
                 </div>
             </div>
         </div>
@@ -94,6 +78,104 @@
 
 {% endblock %}
 
+<div class="works" id="work">
+    <div class="container">
+        <!-- heading -->
+        <h2 color="black">In sala...</h2>
+        <!-- paragraph -->
+        <p>Clicca sul film per saperne di più.</p>
+        <div class="row">
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/TheGrudge.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">The Grudge</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Horror</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/ToloTolo.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">TOLO TOLO</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Commedia</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/Hammamet.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Hammamet</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Biografico, Drammatico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/GliAnniPiùBelli.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Gli anni più belli</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Commedia</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/IlRichiamoDellaForesta.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Il Richiamo della Foresta</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Avventura, Drammatico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/Dolittle.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Dolittle</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Avventura, Commedia,<br>Fantasico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/BB4Life.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Bad Boys For Life</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Azione, Commedia, <br>Poliziesco</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/OdioL'Estate.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Odio l'estate</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Commedia, Drammatico</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <footer class="site-footer" role="contentinfo">
     <div class="card-footer mt-auto row">
@@ -114,11 +196,14 @@
 </footer>
 
 
-
-
-<script src="{{ url_for('static', filename='js/mainjs.js') }}"></script>
-<!--
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> -->
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
 </body>
 </html>
