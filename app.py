@@ -1,17 +1,19 @@
 # from flask_wtf import FlaskForm
 # from wtforms import StringField, PasswordField, BooleanField, SubmitField
 # from wtforms.validators import DataRequired
+
 from flask import Flask, render_template, request, json, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from sqlalchemy import *
 import datetime
 import decimal
+import cv2
 
 app = Flask(__name__)
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 #engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
-engine = create_engine('postgresql+psycopg2://batman@localhost:5432/cinema_basi')
+engine = create_engine('postgresql+psycopg2://postgres:12358@localhost:5432/Cinema_Basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 #login_manager = LoginManager()
@@ -248,6 +250,68 @@ def logout():
     logout_user()
     return render_template("index.html")
 
+@app.route('/create_page_film', methods=['POST'])
+def create_page_film(page_name):
+    f = open(page_name, 'w+')
+    f.write('PROVA.html')
+
+    ############ INSERIMENTO FILM ############
+
+    newTitle = request.form["newTitle"]
+    newGenre = request.form["newGenre"]
+    is3d = request.form["is3d"]
+    newPlot = request.form["newPlot"]
+    newStartData = request.form["newStartData"]
+    newLastData = request.form["newLastData"]
+    newDuration = request.form["newDuration"]
+    newCountry = request.form["newCountry"]
+    newYearPubb = request.form["newYearPubb"]
+    newMinAge = request.form["newMinAge"]
+
+    ################################ QUERY DI AGGIUNTA DI UN FILM ################################
+    idFilm = conn.execute("select MAX(idfilm) from film").fetchone()[0]
+
+    # insert into the db
+    insNewFilm = film.insert()
+    conn.execute(insNewFilm, [
+        {
+            'idfilm': idFilm, 'titolo': newTitle,
+            'is3d': is3d, 'genere': newGenre,
+            'trama': newPlot, 'datainizio': newStartData,
+            'datafine': newLastData, 'durata': newDuration,
+            'Paese': newCountry, 'Anno': newYearPubb,
+            'vm': newMinAge
+        }
+    ])
+
+    ############ AGGIORNAMENTO MOVIE DIRECTOR ############
+    idDirectorTab = conn.execute("select MAX(idfilm) from film").fetchone()[0]
+    newMovDir = request.form["newMovDir"]
+    arrayDirector = newMovDir.split(', ')
+    for director in arrayDirector:
+        dbDirector = conn.execute("select " + director + " from persona").fetchall()
+        if not dbDirector : #se la lista è vuota
+            ### INSERIMENTO PERSONA ###
+
+        ### COLLEGARE IL REGISTA AL FILM
+
+
+    ############ AGGIORNAMENTO ACTOR DIRECTOR ############
+    newActors = request.form["newActors"]
+
+    # Aquisizione e salvataggio della locandina
+    cv2.imwrite(r'/static/img/Locandine', request.form["newImage"])
+
+    #### SCRIVERE HTML
+
+    f.close()
+    return render_template("index.html")
+
+
+@app.route('/admin_page')
+@login_required
+def load_admin():
+    redirect(url_for('admin_page.html'))
 
 if __name__ == '__main__':
     app.run()
