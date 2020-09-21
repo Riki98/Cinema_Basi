@@ -4,6 +4,7 @@
 from flask import Flask, render_template, request, json, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from sqlalchemy import *
+from urllib.parse import urlparse, urljoin
 import datetime
 import decimal
 
@@ -11,7 +12,7 @@ app = Flask(__name__)
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 #engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
-engine = create_engine('postgresql+psycopg2://batman@localhost:5432/cinema_basi')
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 #login_manager = LoginManager()
@@ -112,6 +113,11 @@ class User(UserMixin):
         self.email = email
         self.pwd = pwd
 
+    def __repr__(self):
+        return f'<User: {self.email}>'
+
+    #users = []
+    #users.append(User(id=1, email='antonio@gmail.com', password='password'))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -135,20 +141,21 @@ def alchemyencoder(obj):
         return float(obj)
 
 
-# pagina principale per utenti non loggati
+# pagina principale per utenti loggati e non
 @app.route('/')
-def home_page():
+def home_page(loginError, loginBotton, regError):
     films = conn.execute("select titolo from film")
-    # if user
-    return render_template('index.html', movies=films, loginbtn=true)
+    # login = true se l'utente deve ancora loggarsi
+    # error se l'utente ha già provato a registrarsi/accedere
+    return render_template('index.html', movies=films, loginbtn=loginBotton, loginErr=loginError, registrErr = regError)
 
 
 # stessa pagina ma per utente loggato, permette nuove funzioni
-@app.route('/logged-bad-rendering')
-@login_required
-def home_logged():
-    films = conn.execute("select titolo from film")
-    return render_template('index.html', movies=films, loginbtn=false)
+#@app.route('/logged-bad-rendering')
+#@login_required
+#def home_logged():
+#    films = conn.execute("select titolo from film")
+#    return render_template('index.html', movies=films, loginbtn=false)
 
 
 # ajax richiesta giorni per film
@@ -174,7 +181,7 @@ def selectime():
     return json.dumps([dict(r) for r in time], default=alchemyencoder)
 
 
-# qua non va niente
+# da finire render tamplete a prenotazione
 @app.route('/prenotazione', methods=['POST'])
 def prenotazione():
     movie = {}
@@ -182,6 +189,8 @@ def prenotazione():
     movie['date'] = request.json['date']
     movie['time'] = request.json['time']
     return render_template('prenotazione.html', title=movie['title'], date=movie['date'], time=movie['time'])
+
+
 
 
 # LOGIN
@@ -193,7 +202,9 @@ def login():
 
         user = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
         if user is None:
-            return redirect(url_for("home_page"))
+
+            return home_page(true, false)
+            #return redirect(url_for("home_page"))
 
         real_id     = int(user[1])
         real_email  = str(user[0]).strip()
@@ -201,11 +212,15 @@ def login():
 
         if form_passw == real_pwd:
             login_user(User(real_id, real_email, real_pwd))
-            return redirect(url_for("home_logged"))
+            flask.flash('Logged in successfully.')
+            return home_page(false, false, false)
+            #return redirect(url_for("home_logged"))
         else:
-            return redirect(url_for("home_page"))
+            return home_page(true, true, false)
+            #return redirect(url_for("home_page"))
     else:
-        return render_template('index.html')
+        return home_page(true, true, false)
+        #return render_template('index.html')
 
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
@@ -240,13 +255,23 @@ def register():
     films = conn.execute("select titolo from film")
     log = true
     return render_template('index.html', movies=films, logged=log);
-
+# robe della guida
+def is_safe_url(target):
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and \
+           ref_url.netloc == test_url.netloc
+# guida
+@app.route("/settings")
+@login_required
+def settings():
+    pass
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return render_template("index.html")
+    return home_page(false, true, false)
 
 
 if __name__ == '__main__':
