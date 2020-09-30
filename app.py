@@ -302,7 +302,11 @@ def create_page_film(page_name):
     # Aquisizione e salvataggio della locandina
     cv2.imwrite(r'/static/img/Locandine', request.form["newImage"])
 
-    #### SCRIVERE HTML
+    #### SCRIVERE HTML ####
+    datafile = file('example.txt')
+    found = False
+    for line in datafile:
+        if blabla in line:
 
     f.close()
     return render_template("index.html")
