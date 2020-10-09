@@ -1,5 +1,63 @@
 {% extends "base.html" %}
+
 {% block pagebody %}
+
+
+<div class="col-4">
+                <div class="row d-flex justify-content-around">
+                    <div class="dropdown">
+                        <a id="dropdown-title" class="btn btn-secondary dropdown-toggle" href="#" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="titolo">
+                            Film
+                        </a>
+
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <form id="titleform" class="form">
+                            {% for titolo in movies %}
+                                <a class="dropdown-item titlefilm" href="#">{{ titolo[0] }}</a>
+                            {% endfor %}
+                        </form>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a id="dropdown-day" class="btn btn-secondary dropdown-toggle" href="#" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Giorno
+                        </a>
+
+                        <div class="dropdown-menu" id="dayfilm" aria-labelledby="dropdownMenuLink">
+                            <!-- CODICE IN ARRIVO -->
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a id="dropdown-time" class="btn btn-secondary dropdown-toggle" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Orario
+                        </a>
+
+                        <div class="dropdown-menu" id="timefilm" aria-labelledby="dropdownMenuLink">
+                            <!-- CODICE IN ARRIVO -->
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-warning align-right" id="prenotazione">Prenota</button>
+                </div>
+            </div>
+            <div class="col-2"></div>
+            <div class="col-2">
+                <div class="row d-flex justify-content-around">
+                    <!-- Button trigger modal LOG OUT -->
+                    <form action="/logout" class="form-singin" method="POST">
+                        <button type="submit" class="btn btn-primary">
+                            Log Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
     <br><br><br>
     <div class="row">
     <div class="col-4"></div>
@@ -14,7 +72,8 @@
         <p>Giorno: {{ date }} </p>
         <p>Ora: {{ time }}</p>
         <table class="table table-bordered table-dark">
-          <thead>
+          <!-- Codice html generato -->
+            <thead>
             <tr>
               <th scope="col">Posti</th>
               <th scope="col">1</th>
@@ -24,7 +83,7 @@
           </thead>
           <tbody>
             <tr>
-              <th scope="row">C</th>
+              <th scope="row">A</th>
               <td class="sala-icon" fila="C" numero="1" color-posto="green"> <img id id src="{{ url_for('static', filename='img/armchair-green.png') }}"/><img src="{{ url_for('static', filename='img/armchair.png') }}"/></td>
               <td class="sala-icon"> <img fila="C" numero="2" color-posto="red" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
               <td class="sala-icon"> <img fila="C" numero="3" color-posto="red" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
@@ -36,18 +95,19 @@
               <td class="sala-icon"> <img src="{{ url_for('static', filename='img/armchair.png') }}"/></td>
             </tr>
             <tr>
-                <th scope="row">A</th>
+                <th scope="row">C</th>
                 <td class="sala-icon"> <img color-posto="red" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
                 <td class="sala-icon"> <img color-posto="yellow" src="{{ url_for('static', filename='img/armchair-yellow.png') }}"/></td>
                 <td class="sala-icon"> <div class="image"> <img fila="A" numero="3" color-posto="yellow" src="{{ url_for('static', filename='img/armchair-yellow.png') }}"/><img fila="A" numero="3" color-posto="green" src="{{ url_for('static', filename='img/armchair-green.png') }}"/></div></td>
             </tr>
           </tbody>
+
         </table>
     </div>
     </div>
 
 
 
-<script src="{{ url_for('static', filename='js/prenota.js') }}"></script>
+
 
 {% endblock %}

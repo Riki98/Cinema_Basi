@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block pagebody %}
+
+<div class="col-4">
+    <form action="/prenotazione" class="form-singin" method="POST">
+                <div class="row d-flex justify-content-around">
+                    <div class="dropdown">
+                        <a id="dropdown-title" class="btn btn-secondary dropdown-toggle" href="#" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="titolo">
+                            Film
+                        </a>
+
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <form id="titleform" class="form">
+                            {% for titolo in movies %}
+                                <a class="dropdown-item titlefilm" href="#">{{ titolo[0] }}</a>
+                            {% endfor %}
+                        </form>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a id="dropdown-day" class="btn btn-secondary dropdown-toggle" href="#" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Giorno
+                        </a>
+
+                        <div class="dropdown-menu" id="dayfilm" aria-labelledby="dropdownMenuLink">
+                            <!-- CODICE IN ARRIVO -->
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a id="dropdown-time" class="btn btn-secondary dropdown-toggle" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Orario
+                        </a>
+
+                        <div class="dropdown-menu" id="timefilm" aria-labelledby="dropdownMenuLink">
+                            <!-- CODICE IN ARRIVO -->
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-warning align-right" id="prenotazione">Prenota</button>
+                </div>
+            </form>
+            </div>
+            <div class="col-2"></div>
+            <div class="col-2">
+                <div class="row d-flex justify-content-around">
+                    <!-- Button trigger modal LOG OUT -->
+                    <form action="/logout" class="form-singin" method="POST">
+                        <button type="submit" class="btn btn-primary">
+                            Log Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+
+<!-- Elenco FILM disponibili -->
+
+   <div class="works" id="work">
+    <div class="container">
+        <!-- heading -->
+        <h2 color="black">In sala...</h2>
+        <!-- paragraph -->
+        <p>Clicca sul film per saperne di più.</p>
+        <div class="row">
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/TheGrudge.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">TheGrudge</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Horror</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/ToloTolo.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">TOLO TOLO</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Commedia</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/Hammamet.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Hammamet</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Biografico, Drammatico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/GliAnniPiùBelli.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Gli anni più belli</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Commedia</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/IlRichiamoDellaForesta.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Il Richiamo della Foresta</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Avventura, Drammatico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/Dolittle.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Dolittle</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Avventura, Commedia,<br>Fantasico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/BB4Life.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Bad Boys For Life</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Azione, Commedia, <br>Poliziesco</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image -->
+                    <img class="img-responsive" src="/static/img/Locandine/OdioL'Estate.png"/>
+                    <!-- heading -->
+                    <h3><a href="#">Odio l'estate</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Commedia, Drammatico</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

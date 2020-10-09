@@ -1,22 +1,30 @@
-# from flask_wtf import FlaskForm
-# from wtforms import StringField, PasswordField, BooleanField, SubmitField
-# from wtforms.validators import DataRequired
+# HTML import
+import flask
 from flask import Flask, render_template, request, json, redirect, url_for
+from flask_bootstrap import Bootstrap
+from flask_wtf import FlaskForm
+from wtforms import StringField, BooleanField, PasswordField
+from wtforms.validators import InputRequired, Email, Length
+# DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from sqlalchemy import *
+
 from urllib.parse import urlparse, urljoin
+# TYPE import
 import datetime
 import decimal
 
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
+app.secret_key = 'itsreallysecret'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-#engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
+# engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
 engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
-#login_manager = LoginManager()
-#login_manager.init_app(app)
+# login_manager = LoginManager()
+# login_manager.init_app(app)
 
 metadata = MetaData()
 
@@ -64,7 +72,7 @@ registafilm = Table('registafilm', metadata,
                     Column('idfilm', Integer, foreign_key=True)
                     )
 
-proiezioni = Table('proiezioni', metadata,
+proiezione = Table('proiezioni', metadata,
                    Column('orario', Time),
                    Column('idsala', Integer),
                    Column('idfilm', Integer),
@@ -80,11 +88,11 @@ posto = Table('posto', metadata,
               Column('numero', Integer)
               )
 
-#non mi ricordo a cosa serva questa tabella
+# non mi ricordo a cosa serva questa tabella
 persona = Table('persona', metadata,
-              Column('idpersona', Integer, primary_key=True),
-              Column('nomecognome', String)
-              )
+                Column('idpersona', Integer, primary_key=True),
+                Column('nomecognome', String)
+                )
 
 biglietto = Table('biglietto', metadata,
                   Column('idposto', Integer),
@@ -102,9 +110,26 @@ metadata.create_all(engine)
 # apertura connessione al DB
 conn = engine.connect()
 
-
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+#class LoginForm(FlaskForm):
+#    username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
+  #  password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
+  #  remember = BooleanField('remember me')
+
+
+#class RegisterForm(FlaskForm):
+ #   email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=20)])
+  #  username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
+   # password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
+
+
+users = []
+users = conn.execute('select idutente from utente')
+active_users = []
 
 
 class User(UserMixin):
@@ -113,11 +138,32 @@ class User(UserMixin):
         self.email = email
         self.pwd = pwd
 
+    def is_authenticated(self):
+        for identifier in users:
+            if self.get_id() == identifier:
+                return true
+        return false
+
+    def is_active(self):
+        for identifier in active_users:
+            if self.get_id() == identifier:
+                return true
+        return false
+
+    def is_anonymous(self):
+        if self.is_authenticated() == true:
+            return true
+        return false
+
+    def get_id(self):
+        return self.id
+
     def __repr__(self):
         return f'<User: {self.email}>'
 
-    #users = []
-    #users.append(User(id=1, email='antonio@gmail.com', password='password'))
+
+    # users.append(User(id=1, email='antonio@gmail.com', password='password'))
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -125,10 +171,12 @@ def load_user(user_id):
     if user is None:
         return None
     else:
-        real_id     = int(user[1])
-        real_email  = str(user[0]).strip()
-        real_pwd    = str(user[2]).strip()
+        real_id = int(user[1])
+        real_email = str(user[0]).strip()
+        real_pwd = str(user[2]).strip()
+        print("RETURN USER")
         return User(real_id, real_email, real_pwd)
+
 
 # fun: permette di serializzare i dati per le conversioni json
 def alchemyencoder(obj):
@@ -143,19 +191,19 @@ def alchemyencoder(obj):
 
 # pagina principale per utenti loggati e non
 @app.route('/')
-def home_page(loginError, loginBotton, regError):
+def home_page():
     films = conn.execute("select titolo from film")
-    # login = true se l'utente deve ancora loggarsi
-    # error se l'utente ha già provato a registrarsi/accedere
-    return render_template('index.html', movies=films, loginbtn=loginBotton, loginErr=loginError, registrErr = regError)
+
+
+    return render_template('index.html', movies=films)
 
 
 # stessa pagina ma per utente loggato, permette nuove funzioni
-#@app.route('/logged-bad-rendering')
-#@login_required
-#def home_logged():
-#    films = conn.execute("select titolo from film")
-#    return render_template('index.html', movies=films, loginbtn=false)
+@app.route('/logged-bad-rendering')
+@login_required
+def home_logged():
+    films = conn.execute("select titolo from film")
+    return render_template('login.html', movies=films)
 
 
 # ajax richiesta giorni per film
@@ -181,46 +229,54 @@ def selectime():
     return json.dumps([dict(r) for r in time], default=alchemyencoder)
 
 
-# da finire render tamplete a prenotazione
+# render alla pagina di prenotazione dei biglietti
 @app.route('/prenotazione', methods=['POST'])
+@login_required
 def prenotazione():
     movie = {}
     movie['title'] = request.json['title']
     movie['date'] = request.json['date']
     movie['time'] = request.json['time']
-    return render_template('prenotazione.html', title=movie['title'], date=movie['date'], time=movie['time'])
-
-
-
+    films = conn.execute("select titolo from film")
+    righe = conn.execute(
+        "select sala.numcolonne, sala.numrighe from sala inner join proiezione inner join film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
+         " where film.titolo = '" + movie['title'] + "' and proiezione.data = '" + movie['date'] + "' and proiezione.orario ='" + movie['time']+"'")
+    colonne = conn.execute(
+        "select sala.numcolonne from sala inner join proiezione inner join film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
+         " where film.titolo = '" + movie['title'] + "' and proiezione.data = '" + movie['date'] + "' and proiezione.orario ='" + movie['time']+"'")
+    return render_template('prenotazione.html', movies=films, posti=righe, column=colonne, title=movie['title'], date=movie['date'], time=movie['time'])
+    # default=alchemyencoder
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    user = None
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
+        if form_email.isdecimal():
+            print("madafaka")
+
+        print(form_email)
+        print(form_passw)
 
         user = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
-        if user is None:
 
-            return home_page(true, false)
-            #return redirect(url_for("home_page"))
+    if user is None:
+        return home_page()
+    real_id = int(user[1])
+    real_email = str(user[0]).strip()
+    real_pwd = str(user[2]).strip()
 
-        real_id     = int(user[1])
-        real_email  = str(user[0]).strip()
-        real_pwd    = str(user[2]).strip()
-
-        if form_passw == real_pwd:
-            login_user(User(real_id, real_email, real_pwd))
-            flask.flash('Logged in successfully.')
-            return home_page(false, false, false)
-            #return redirect(url_for("home_logged"))
-        else:
-            return home_page(true, true, false)
-            #return redirect(url_for("home_page"))
+    if form_passw == real_pwd:
+        login_user(User(real_id, real_email, real_pwd)) # appoggio a flask_login
+        active_users.append(real_id)
+        print("Logged in successfully.")
+        films = conn.execute("select titolo from film")
+        return home_logged()
     else:
-        return home_page(true, true, false)
-        #return render_template('index.html')
+        return home_page()
+
 
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
@@ -253,26 +309,16 @@ def register():
 
     ])
     films = conn.execute("select titolo from film")
-    log = true
-    return render_template('index.html', movies=films, logged=log);
-# robe della guida
-def is_safe_url(target):
-    ref_url = urlparse(request.host_url)
-    test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc
-# guida
-@app.route("/settings")
-@login_required
-def settings():
-    pass
+    return render_template('index.html', movies=films);
 
-@app.route('/logout')
+
+
+@app.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
-    return home_page(false, true, false)
+    return home_page()
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

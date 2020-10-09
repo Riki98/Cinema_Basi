@@ -1,10 +1,12 @@
-
-var lastTitolo="";
-var lastDate="";
+let lastTitolo = "";
+let lastDate = "";
 var emptyDate = 1;
 var emptyTime = 1;
-var logged = 1; // set 0 -> block login session
 var movieComplete = 0;
+
+$(document).ready(function(){
+   console.log("JavaScript & JQuery are working!")
+});
 
   $('.titlefilm').on('click', function(){
       movieComplete =0;
@@ -125,12 +127,11 @@ function cleanDropDate() {
 }
 
 $('#prenotazione').on('click', function () {
-    console.log("funziaaa");
     var title = $('#dropdown-title').html();
     var day = $('#dropdown-day').html();
     var time = $('#dropdown-time').html();
     var movie = {'title': title, 'date': day, 'time':time }
-    if(movieComplete && logged){
+    if(movieComplete){
     $.ajax({
             type: 'POST',
             url: '/prenotazione',
@@ -138,12 +139,16 @@ $('#prenotazione').on('click', function () {
             contentType: 'application/json',
             processData: false,
             data: JSON.stringify(movie),
-            success: on_request_success
+            success: on_request_success,
+            error: on_request_error
         });
     }
 
     function on_request_success(response) {
-        console.log("prenotazione in corso, database rende atomica la risorsa??")
+        console.log("prenotazione in corso, database rende atomica la risorsa?? si bisogna farlo sull'app.py")
+    }
+    function on_request_error(r, text_status, error_thrown) {
+        console.debug('error', text_status + ", " + error_thrown + ":\n" + r.responseText);
     }
 
 });
