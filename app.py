@@ -12,12 +12,12 @@ import cv2
 app = Flask(__name__)
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-#engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
+# engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
 engine = create_engine('postgresql+psycopg2://postgres:12358@localhost:5432/Cinema_Basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
-#login_manager = LoginManager()
-#login_manager.init_app(app)
+# login_manager = LoginManager()
+# login_manager.init_app(app)
 
 metadata = MetaData()
 
@@ -81,11 +81,11 @@ posto = Table('posto', metadata,
               Column('numero', Integer)
               )
 
-#non mi ricordo a cosa serva questa tabella
+# non mi ricordo a cosa serva questa tabella
 persona = Table('persona', metadata,
-              Column('idpersona', Integer, primary_key=True),
-              Column('nomecognome', String)
-              )
+                Column('idpersona', Integer, primary_key=True),
+                Column('nomecognome', String)
+                )
 
 biglietto = Table('biglietto', metadata,
                   Column('idposto', Integer),
@@ -102,7 +102,6 @@ metadata.create_all(engine)
 
 # apertura connessione al DB
 conn = engine.connect()
-
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -121,10 +120,11 @@ def load_user(user_id):
     if user is None:
         return None
     else:
-        real_id     = int(user[1])
-        real_email  = str(user[0]).strip()
-        real_pwd    = str(user[2]).strip()
+        real_id = int(user[1])
+        real_email = str(user[0]).strip()
+        real_pwd = str(user[2]).strip()
         return User(real_id, real_email, real_pwd)
+
 
 # fun: permette di serializzare i dati per le conversioni json
 def alchemyencoder(obj):
@@ -197,9 +197,9 @@ def login():
         if user is None:
             return redirect(url_for("home_page"))
 
-        real_id     = int(user[1])
-        real_email  = str(user[0]).strip()
-        real_pwd    = str(user[2]).strip()
+        real_id = int(user[1])
+        real_email = str(user[0]).strip()
+        real_pwd = str(user[2]).strip()
 
         if form_passw == real_pwd:
             login_user(User(real_id, real_email, real_pwd))
@@ -208,6 +208,7 @@ def login():
             return redirect(url_for("home_page"))
     else:
         return render_template('index.html')
+
 
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
@@ -250,12 +251,11 @@ def logout():
     logout_user()
     return render_template("index.html")
 
+
 @app.route('/create_page_film', methods=['POST'])
 def create_page_film(page_name):
     f = open(page_name, 'w+')
     f.write('PROVA.html')
-
-    ############ INSERIMENTO FILM ############
 
     newTitle = request.form["newTitle"]
     newGenre = request.form["newGenre"]
@@ -268,54 +268,54 @@ def create_page_film(page_name):
     newYearPubb = request.form["newYearPubb"]
     newMinAge = request.form["newMinAge"]
 
-    ################################ QUERY DI AGGIUNTA DI UN FILM ################################
-    idFilm = conn.execute("select MAX(idfilm) from film").fetchone()[0]
+    #Controllo nel caso esista già il film
+    isThereQuery = "SELECT titolo, Anno FROM film WHERE titolo = ? AND Anno = ?"
+    isThereQuery.setString(1, newTitle)
+    isThereQuery.setString(2, newYearPubb)
+    isThere = conn.execute(isThereQuery).fetchone()[0]
+    if not isThere:
 
-    # insert into the db
-    insNewFilm = film.insert()
-    conn.execute(insNewFilm, [
-        {
-            'idfilm': idFilm, 'titolo': newTitle,
-            'is3d': is3d, 'genere': newGenre,
-            'trama': newPlot, 'datainizio': newStartData,
-            'datafine': newLastData, 'durata': newDuration,
-            'Paese': newCountry, 'Anno': newYearPubb,
-            'vm': newMinAge
-        }
-    ])
+        ################################ QUERY DI AGGIUNTA DI UN FILM ################################
+        idFilmDB = conn.execute("SELECT MAX(idfilm) FROM film").fetchone()[0] + 1
 
-    ############ AGGIORNAMENTO MOVIE DIRECTOR ############
-    idDirectorTab = conn.execute("select MAX(idfilm) from film").fetchone()[0]
-    newMovDir = request.form["newMovDir"]
-    arrayDirector = newMovDir.split(', ')
-    for director in arrayDirector:
-        dbDirector = conn.execute("select " + director + " from persona").fetchall()
-        if not dbDirector : #se la lista è vuota
-            ### INSERIMENTO PERSONA ###
+        # insert into the db
+        insNewFilm = film.insert()
+        conn.execute(insNewFilm, [
+            {
+                'idfilm': idFilmDB, 'titolo': newTitle,
+                'is3d': is3d, 'genere': newGenre,
+                'trama': newPlot, 'datainizio': newStartData,
+                'datafine': newLastData, 'durata': newDuration,
+                'Paese': newCountry, 'Anno': newYearPubb,
+                'vm': newMinAge
+            }
+        ])
 
-        ### COLLEGARE IL REGISTA AL FILM
+        ############ AGGIORNAMENTO MOVIE DIRECTOR ############
+        idDirectorDB = conn.execute("SELECT MAX(idregista) FROM film").fetchone()[0]
+        newMovDir = request.form["newMovDir"]
+        arrayDirector = newMovDir.split(', ')
+        for director in arrayDirector:
+            dbDirector = conn.execute("select " + director + " from persona").fetchall()
+            if not dbDirector:  # se la lista è vuota
+                print()  ### INSERIMENTO PERSONA ###
 
+            ### COLLEGARE IL REGISTA AL FILM
 
-    ############ AGGIORNAMENTO ACTOR DIRECTOR ############
-    newActors = request.form["newActors"]
+        ############ AGGIORNAMENTO ACTOR DIRECTOR ############
+        newActors = request.form["newActors"]
 
-    # Aquisizione e salvataggio della locandina
-    cv2.imwrite(r'/static/img/Locandine', request.form["newImage"])
+    else:
+        print("Il film esiste già")
 
-    #### SCRIVERE HTML ####
-    datafile = file('example.txt')
-    found = False
-    for line in datafile:
-        if blabla in line:
-
-    f.close()
-    return render_template("index.html")
+    return render_template("admin_page.html")
 
 
 @app.route('/admin_page')
 @login_required
 def load_admin():
     redirect(url_for('admin_page.html'))
+
 
 if __name__ == '__main__':
     app.run()
