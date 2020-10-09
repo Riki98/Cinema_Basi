@@ -2,33 +2,136 @@
 
 {% block pagebody %}
 
-<div class="modal fade" id="modalLogin" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header text-center">
-                <h5 class="modal-title">Login</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+<div class="col-2">
+                <div class="row d-flex justify-content-around">
+                    <!-- Button trigger modal SIGN IN -->
+                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalLogin">
+                    Sign In
+                    </button>
+                    <!-- Button trigger modal SIGN UP -->
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalRegistration">
+                        Sign Up
+                    </button>
+                </div>
             </div>
-            <div class="modal-body">
-                Effettua l'accesso per riuscire a prenotare!
-            </div>
+        </div>
+    </div>
+</nav>
 
-            <form action="/login" method="post">
+
+
+<!-- Elenco FILM disponibili -->
+
+   <div class="works" id="work">
+    <div class="container">
+        <!-- heading -->
+        <h2 color="black">In sala...</h2>
+        <!-- paragraph -->
+        <p>Clicca sul film per saperne di più.</p>
+        <div class="row">
+            {% for titolo in movies %}
+                <div class="col-md-3">
+                <!-- work item -->
+                <div class="work-item">
+                    <!-- work details image
+                    <img class="img-responsive" src="/static/img/Locandine/.png"/>-->
+                    <!-- heading -->
+                    <h3><a href="#">{{ titolo[0] }}</a></h3>
+                    <!-- brand org -->
+                    <span class="org">Horror</span>
+                </div>
+            </div>
+            {% endfor %}
+          <!--  <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/TheGrudge.png.png"/>
+                    <h3><a href="#">The Grudge</a></h3>
+                    <span class="org">Horror</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/ToloTolo.png"/>
+                    <h3><a href="#">TOLO TOLO</a></h3>
+                    <span class="org">Commedia</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/Hammamet.png"/>
+                    <h3><a href="#">Hammamet</a></h3>
+                    <span class="org">Biografico, Drammatico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/GliAnniPiùBelli.png"/>
+                    <h3><a href="#">Gli anni più belli</a></h3>
+                    <span class="org">Commedia</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/IlRichiamoDellaForesta.png"/>
+                    <h3><a href="#">Il Richiamo della Foresta</a></h3>
+                    <span class="org">Avventura, Drammatico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/Dolittle.png"/>
+                    <h3><a href="#">Dolittle</a></h3>
+                    <span class="org">Avventura, Commedia,<br>Fantasico</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/BB4Life.png"/>
+                    <h3><a href="#">Bad Boys For Life</a></h3>
+                    <span class="org">Azione, Commedia, <br>Poliziesco</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="work-item">
+                    <img class="img-responsive" src="/static/img/Locandine/OdioL'Estate.png"/>
+                    <h3><a href="#">Odio l'estate</a></h3>
+                    <span class="org">Commedia, Drammatico</span>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</div>
+
+
+<!-- Inizio modal login -->
+
+    <div class="modal fade" id="modalLogin" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title" id="exampleModalLabel">Login</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Effettua l'accesso per riuscire a prenotare!
+                </div>
+
 
                 <!-- Username -->
+                <form action="/login" class="form-singin" method="POST">
                 <div class="row">
                     <div class="col-1"></div>
                     <div class="col">
                         <div class="input-group input-group-sm mb-3">
                             <div class="input-group-prepend">
-                                <span class="input-group-text" id="inputGroup-sizing-sm">Email</span>
+                                <span class="input-group-text" id="inputLoginMail">Email</span>
                             </div>
-                            <input name="mailLogin" type="text" class="form-control"
-                                   aria-label="Sizing example input"
-                                   aria-describedby="inputGroup-sizing-sm">
+                                <input name="mailLogin" type="text" class="form-control"
+                                       aria-label="Sizing example input"
+                                       aria-describedby="inputGroup-sizing-sm">
                         </div>
                     </div>
                     <div class="col-2"></div>
@@ -41,144 +144,134 @@
                     <div class="col">
                         <div class="input-group input-group-sm mb-3">
                             <div class="input-group-prepend">
-                                <span class="input-group-text" id="inputGroup-sizing-sm">Password</span>
+                                <span class="input-group-text" id="inputLoginPsw">  Password</span>
                             </div>
-                            <input name="passwordLogin" type="text" class="form-control"
-                                   aria-label="Sizing example input"
-                                   aria-describedby="inputGroup-sizing-sm">
+                                <input name="passwordLogin" type="text" class="form-control"
+                                       aria-label="Sizing example input"
+                                       aria-describedby="inputGroup-sizing-sm">
                         </div>
+
                     </div>
                     <div class="col-2"></div>
                 </div>
 
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Sign in</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" >Sign in</button>
                 </div>
-
-            </form>
+                    </form>
+            </div>
         </div>
     </div>
-</div>
 
 
-<!-- Fine modal login -->
 
-<!-- Inizio modal registration -->
+    <!-- Fine modal login -->
 
-<div class="modal fade" id="modalRegistration" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header text-center">
-                <h5 class="modal-title" id="exampleModalLabel">Registrati</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                Effettua l'accesso per riuscire a prenotare!
-            </div>
+    <!-- Inizio modal registration -->
 
-            <!-- Form di registrazione -->
+    <div class="modal fade" id="modalRegistration" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title" >Registrati</h5> <!-- id="exampleModalLabel" -->
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Effettua l'accesso per riuscire a prenotare!
+                </div>
 
-            <form action="/register" method="post">
-                <div class="row">
-                    <div class="col-1"></div>
-                    <div class="col">
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="inputEmail4">Email</label>
-                                <input name="emailReg" type="email" class="form-control" id="inputEmail4">
+                <!-- Form di registrazione -->
+
+                <form action="/register" method="POST" class="form-signup">
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+
+                                    <label for="inputEmail4">Email</label>
+                                    <input name="emailReg" type="email" class="form-control" id="inputEmail4">
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label for="inputPassword4">Password</label>
+                                    <input name="passReg" type="password" class="form-control" id="inputPassword4">
+                                </div>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="inputPassword4">Password</label>
-                                <input name="passReg" type="password" class="form-control" id="inputPassword4">
+                            <div class="form-group">
+                                <label for="inputName">Nome</label>
+                                <input name="nameReg" type="text" class="form-control" id="inputName">
+                            </div>
+                            <div class="form-group">
+                                <label for="inputSurname">Cognome</label>
+                                <input name="surnameReg" type="text" class="form-control" id="inputSurname">
+                            </div>
+                            <div class="form-group">
+                                <label for="inputAddress">Indirizzo</label>
+                                <input name="addressReg" type="text" class="form-control" id="inputAddress"
+                                       placeholder="Via PippoPluto 1">
+                            </div>
+                            <div class="form-group">
+                                <label for="inputBirthdate">Data di nascita</label>
+                                <input name="birthdateReg" type="text" class="form-control" id="inputBirthdate"
+                                       placeholder="gg/mm/aaaa">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="inputCity">City</label>
+                                    <input name="cityReg" type="text" class="form-control" id="inputCity">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="inputState">State</label>
+                                    <select name="stateReg" id="inputState" class="form-control">
+                                        <option selected>Scegli...</option>
+                                        <option>Venezia</option>
+                                        <option>Briganti</option>
+                                        <option>Maedetti</option>
+                                        <option>Teroni</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="inputZip">Zip</label>
+                                    <input name="zipReg" type="text" class="form-control" id="inputZip">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="inputNumberCell">Numero di telefono</label>
+                                    <input name="cellReg" type="text" class="form-control" id="inputNumberCell">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="inputSex">Sesso</label>
+                                    <select name="sexReg" id="inputSex" class="form-control">
+                                        <option selected>-</option>
+                                        <option>M</option>
+                                        <option>F</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="inputChild">Figli</label>
+                                    <input name="nSonReg" type="text" class="form-control" id="inputChild">
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="inputName">Nome</label>
-                            <input name="nameReg" type="text" class="form-control" id="inputName">
-                        </div>
-                        <div class="form-group">
-                            <label for="inputSurname">Cognome</label>
-                            <input name="surnameReg" type="text" class="form-control" id="inputSurname">
-                        </div>
-                        <div class="form-group">
-                            <label for="inputAddress">Indirizzo</label>
-                            <input name="addressReg" type="text" class="form-control" id="inputAddress"
-                                   placeholder="Via PippoPluto 1">
-                        </div>
-                        <div class="form-group">
-                            <label for="inputBirthdate">Data di nascita</label>
-                            <input name="birthdateReg" type="text" class="form-control" id="inputBirthdate"
-                                   placeholder="gg/mm/aaaa">
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="inputCity">City</label>
-                                <input name="cityReg" type="text" class="form-control" id="inputCity">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="inputState">State</label>
-                                <select name="stateReg" id="inputState" class="form-control">
-                                    <option selected>Scegli...</option>
-                                    <option>Venezia</option>
-                                    <option>Briganti</option>
-                                    <option>Maedetti</option>
-                                    <option>Teroni</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="inputZip">Zip</label>
-                                <input name="zipReg" type="text" class="form-control" id="inputZip">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="inputNumberCell">Numero di telefono</label>
-                                <input name="cellReg" type="text" class="form-control" id="inputNumberCell">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="inputSex">Sesso</label>
-                                <select name="sexReg" id="inputSex" class="form-control">
-                                    <option selected>-</option>
-                                    <option>M</option>
-                                    <option>F</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="inputZip">Figli</label>
-                                <input name="nSonReg" type="text" class="form-control" id="inputChild">
-                            </div>
-                        </div>
+                        <div class="col-1"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary btn-lg btn-block">Sign up</button>
                     </div>
-                    <div class="col-1"></div>
-                </div>
-
-
+                    </div>
+                </form>
                 <!-- Fine form di registrazione -->
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Sign up</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Fine modal registration -->
-
-
-Welcome user!
-Here you can see our films.
-<ul>
-    {% for u in movies %}
-    <li> {{ u }}</li>
-    {% endfor %}
-</ul>
+    <!-- Fine modal registration -->
 
 
 {% endblock %}
