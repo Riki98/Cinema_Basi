@@ -13,6 +13,7 @@ for line in datafile:
         datafile.write("\n<p>" + is3d + "</p>")
     elif "<!--Img-->" in line:
         datafile.write("\n<img src=\"/static/img/Locandine/TheGrudge.png\" class=\"dimensione\" alt="">")
+        #salva immagine
     elif "<!--Plot-->" in line:
         datafile.write("\n<p>" + newPlot + "</p>")
     elif "<!--firstDate-->" in line:

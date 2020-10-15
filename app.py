@@ -1,10 +1,7 @@
 # HTML import
 import flask
 from flask import Flask, render_template, request, json, redirect, url_for
-from flask_bootstrap import Bootstrap
-from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, PasswordField
-from wtforms.validators import InputRequired, Email, Length
+
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from sqlalchemy import *
@@ -13,10 +10,8 @@ from urllib.parse import urlparse, urljoin
 # TYPE import
 import datetime
 import decimal
-import cv2
 
 app = Flask(__name__)
-bootstrap = Bootstrap(app)
 app.secret_key = 'itsreallysecret'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
@@ -115,17 +110,16 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-
-#class LoginForm(FlaskForm):
+# class LoginForm(FlaskForm):
 #    username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
-  #  password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
-  #  remember = BooleanField('remember me')
+#  password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
+#  remember = BooleanField('remember me')
 
 
-#class RegisterForm(FlaskForm):
- #   email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=20)])
-  #  username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
-   # password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
+# class RegisterForm(FlaskForm):
+#   email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=20)])
+#  username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
+# password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
 
 
 users = []
@@ -162,7 +156,6 @@ class User(UserMixin):
     def __repr__(self):
         return f'<User: {self.email}>'
 
-
     # users.append(User(id=1, email='antonio@gmail.com', password='password'))
 
 
@@ -195,7 +188,6 @@ def alchemyencoder(obj):
 @app.route('/')
 def home_page():
     films = conn.execute("select titolo from film")
-
 
     return render_template('index.html', movies=films)
 
@@ -241,13 +233,17 @@ def prenotazione():
     movie['time'] = request.json['time']
     films = conn.execute("select titolo from film")
     righe = conn.execute(
-        "select sala.numcolonne, sala.numrighe from sala inner join proiezione inner join film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
-         " where film.titolo = '" + movie['title'] + "' and proiezione.data = '" + movie['date'] + "' and proiezione.orario ='" + movie['time']+"'")
+        "select sala.numcolonne, sala.numrighe FROM sala INNER JOIN proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
+        " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
+            'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
     colonne = conn.execute(
-        "select sala.numcolonne from sala inner join proiezione inner join film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
-         " where film.titolo = '" + movie['title'] + "' and proiezione.data = '" + movie['date'] + "' and proiezione.orario ='" + movie['time']+"'")
-    return render_template('prenotazione.html', movies=films, posti=righe, column=colonne, title=movie['title'], date=movie['date'], time=movie['time'])
+        "select sala.numcolonne FROM sala inner join proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
+        " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
+            'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
+    return render_template('prenotazione.html', movies=films, posti=righe, column=colonne, title=movie['title'],
+                           date=movie['date'], time=movie['time'])
     # default=alchemyencoder
+
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
@@ -271,20 +267,19 @@ def login():
     real_pwd = str(user[2]).strip()
 
     if form_passw == real_pwd:
-        login_user(User(real_id, real_email, real_pwd)) # appoggio a flask_login
+        login_user(User(real_id, real_email, real_pwd))  # appoggio a flask_login
         active_users.append(real_id)
         print("Logged in successfully.")
-        films = conn.execute("select titolo from film")
+        films = conn.execute("SELECT titolo FROM film")
         return home_logged()
     else:
         return home_page()
 
 
-
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    id = conn.execute("select MAX(idutente) from utente")
+    id = conn.execute("SELECT MAX(idutente) FROM utente")
 
     myid = id.fetchone()[0]
 
@@ -311,9 +306,8 @@ def register():
         }
 
     ])
-    films = conn.execute("select titolo from film")
+    films = conn.execute("SELECT titolo FROM film")
     return render_template('index.html', movies=films);
-
 
 
 @app.route('/logout', methods=['POST'])
@@ -324,9 +318,7 @@ def logout():
 
 
 @app.route('/create_page_film', methods=['POST'])
-def create_page_film(page_name):
-    f = open(page_name, 'w+')
-    f.write('PROVA.html')
+def insert_film():
 
     newTitle = request.form["newTitle"]
     newGenre = request.form["newGenre"]
@@ -339,17 +331,19 @@ def create_page_film(page_name):
     newYearPubb = request.form["newYearPubb"]
     newMinAge = request.form["newMinAge"]
 
-    #Controllo nel caso esista già il film
-    isThereQuery = "SELECT titolo, Anno FROM film WHERE titolo = ? AND Anno = ?"
+    # Controllo se il film sia già presente nel database
+    isThereQueryWow = select([film.c.titolo, film.c.anno]).\
+                      where(film.c.titolo == newTitle)
+    ## DA FINIRE#####################################################################################################################################
+    isThereQuery = "SELECT titolo, anno FROM film WHERE titolo = ? AND anno = ?"
     isThereQuery.setString(1, newTitle)
     isThereQuery.setString(2, newYearPubb)
     isThere = conn.execute(isThereQuery).fetchone()[0]
+
     if not isThere:
-
-        ################################ QUERY DI AGGIUNTA DI UN FILM ################################
-        idFilmDB = conn.execute("SELECT MAX(idfilm) FROM film").fetchone()[0] + 1
-
-        # insert into the db
+        # QUERY DI AGGIUNTA DI UN FILM
+        idFilmDB = select([max(film.c.idfilm)]) + 1
+        ## idFilmDB = conn.execute("SELECT MAX(idfilm) FROM film").fetchone()[0] + 1
         insNewFilm = film.insert()
         conn.execute(insNewFilm, [
             {
@@ -361,23 +355,76 @@ def create_page_film(page_name):
                 'vm': newMinAge
             }
         ])
-
-        ############ AGGIORNAMENTO MOVIE DIRECTOR ############
-        idDirectorDB = conn.execute("SELECT MAX(idregista) FROM film").fetchone()[0]
-        newMovDir = request.form["newMovDir"]
-        arrayDirector = newMovDir.split(', ')
-        for director in arrayDirector:
-            dbDirector = conn.execute("select " + director + " from persona").fetchall()
-            if not dbDirector:  # se la lista è vuota
-                print()  ### INSERIMENTO PERSONA ###
-
-            ### COLLEGARE IL REGISTA AL FILM
-
-        ############ AGGIORNAMENTO ACTOR DIRECTOR ############
-        newActors = request.form["newActors"]
-
+        print("Film inserito")
     else:
         print("Il film esiste già")
+
+    ############ AGGIORNAMENTO DIRECTOR MOVIE ############
+    newMovDir = request.form["newMovDir"]
+    arrayNewDirectors = newMovDir.split(', ')
+    for director in arrayNewDirectors:
+        queryDbDirector = "SELECT idpersona, nomecognome FROM persona WHERE nomecognome = '?'" #cerco se c'è il regista
+        queryDbDirector.setString(1, director)
+        dbDirector = conn.execute(queryDbDirector) #eseguo la ricerca
+        insNewDirectorMovie = registafilm.insert()
+
+        if len(dbDirector) != 0: #se è già presente
+            conn.execute(insNewDirectorMovie, [
+                {
+                    'idregista': dbDirector[0], 'idfilm': idFilmDB
+                }
+            ])
+        else: #se invece non c'è
+            #inserisco prima la persona
+            idMaxPersonaDB = conn.execute("SELECT MAX(idpersona) FROM persona").fetchone()[0] + 1
+            insNewDirector = persona.insert()
+            conn.execute(insNewDirector, [
+                {
+                    'idpersona': idMaxPersonaDB, 'nomecognome': director
+                }
+            ])
+            #poi aggiungo il collegamento a registafilm
+            conn.execute(insNewDirectorMovie, [
+                {
+                    'idregista': idMaxPersonaDB, 'idfilm': idFilmDB
+                }
+            ])
+
+    ############ AGGIORNAMENTO ACTOR MOVIE #############
+    newActors = request.form["newActors"]
+    arrayNewActors = newMovDir.split(', ')
+    for actor in arrayNewActors:
+        queryDbActor = "SELECT idpersona, nomecognome FROM persona WHERE nomecognome = '?'"  # cerco se c'è l'attore
+        queryDbActor.setString(1, actor)
+        dbActors = conn.execute(queryDbActor)  # eseguo la ricerca
+        insNewActorsMovie = registafilm.insert()
+        if len(dbActors) != 0:  # se è già presente
+            conn.execute(insNewActorsMovie, [
+                {
+                    'idregista': dbActors[0], 'idfilm': idFilmDB
+                }
+            ])
+        else:  # se invece non c'è
+            # inserisco prima la persona
+            idMaxPersonaDB = conn.execute("SELECT MAX(idpersona) FROM persona").fetchone()[0] + 1
+            insNewActors = persona.insert()
+            conn.execute(insNewActors, [
+                {
+                    'idpersona': idMaxPersonaDB, 'nomecognome': actor
+                }
+            ])
+            # poi aggiungo il collegamento ad attorefilm
+            conn.execute(insNewActorsMovie, [
+                {
+                    'idregista': idMaxPersonaDB, 'idfilm': idFilmDB
+                }
+            ])
+
+    ###### SALVATAGGIO DELLA LOCANDINA
+    image = request.files["image"]
+
+    image.save('C:\Users\Riccardo\Documents\PyCharmProjects\Cinema_Basi\templates\templates_film', image)
+    print("Immagine salvata")
 
     return render_template("admin_page.html")
 
