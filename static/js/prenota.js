@@ -2,6 +2,35 @@ var green = "green";
 var yellow = "yellow";
 var red = "red";
 
+let preonotati = [];
+let numPosti = 1;
+let numPostiPosizionati = 0;
+
+
+$('#numPosti').on('change',function(){
+    numPosti = $(this).val();
+    $('.sala td.prenotato').removeClass("prenotato").addClass("libero");
+    preonotati = [];
+    numPostiPosizionati= 0;
+    $("#posti").val(JSON.stringify(preonotati));
+});
+
+$('.sala td.libero').on('click',function(){
+    let posto = $(this);
+    if(numPostiPosizionati>=numPosti){
+        alert("n max posti raggiunto");
+        return;
+    }
+    numPostiPosizionati++;
+
+    posto.addClass("prenotato");
+    posto.removeClass("libero");
+
+    preonotati.push(posto[0].dataset);
+    $("#posti").val(JSON.stringify(preonotati));
+
+
+});
 
 
 $('.sala-icon').on('click',function(){

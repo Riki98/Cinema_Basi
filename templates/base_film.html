@@ -5,9 +5,35 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{{ movie.titolo }}</title>
 </head>
 <body>
+
+<h1>{{ movie.titolo }}</h1>
+<p>{{ movie.trama }}</p>
+<p>{{ movie.genere }}</p>
+<p>{{ movie.is3d }}</p>
+
+
+<h2>Orari disponibili</h2>
+<table>
+    {% for proiezione in proiezioni %}
+    <tr>
+        <td>
+               {{proiezione.data}}
+        </td>
+        <td>
+               {{proiezione.orario}}
+        </td>
+        <td>
+            <a href="/prenotazione/{{proiezione.idproiezione}}">PRENTOTA ORA</a>
+        </td>
+
+    </tr>
+
+   {% endfor %}
+</table>
+
 
     <!--Title-->
 

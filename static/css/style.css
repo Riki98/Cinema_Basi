@@ -46,3 +46,33 @@ img {
   width: 100%;
   height: auto;
 }
+
+.sala {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.sala td{
+
+    background-size: contain !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+.sala td.libero{
+    background: url("/static/img/sedie/armchair-green.png") ;
+    cursor:pointer;
+
+}
+.sala td:hover{
+    background-color: black;
+    color:white;
+
+}
+
+.sala td.prenotato{
+    background: url("/static/img/sedie/armchair-yellow.png") ;
+}
+
+.sala td.occupato{
+    background: url("/static/img/sedie/armchair-red.png") ;
+}

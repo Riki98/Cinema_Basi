@@ -6,13 +6,13 @@
 <div class="col-4">
                 <div class="row d-flex justify-content-around">
                     <div class="dropdown">
-                        <a id="dropdown-title" class="btn btn-secondary dropdown-toggle" href="#" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="titolo">
+                        <a aria-expanded="false" aria-haspopup="true" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
+                           href="#" id="dropdown-title" name="titolo" role="button">
                             Film
                         </a>
 
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                        <form id="titleform" class="form">
+                        <div aria-labelledby="dropdownMenuLink" class="dropdown-menu">
+                        <form class="form" id="titleform">
                             {% for titolo in movies %}
                                 <a class="dropdown-item titlefilm" href="#">{{ titolo[0] }}</a>
                             {% endfor %}
@@ -20,26 +20,26 @@
                         </div>
                     </div>
                     <div class="dropdown">
-                        <a id="dropdown-day" class="btn btn-secondary dropdown-toggle" href="#" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a aria-expanded="false" aria-haspopup="true" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
+                           href="#" id="dropdown-day" role="button">
                             Giorno
                         </a>
 
-                        <div class="dropdown-menu" id="dayfilm" aria-labelledby="dropdownMenuLink">
+                        <div aria-labelledby="dropdownMenuLink" class="dropdown-menu" id="dayfilm">
                             <!-- CODICE IN ARRIVO -->
                         </div>
                     </div>
                     <div class="dropdown">
-                        <a id="dropdown-time" class="btn btn-secondary dropdown-toggle" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a aria-expanded="false" aria-haspopup="true" class="btn btn-secondary dropdown-toggle"
+                           data-toggle="dropdown" id="dropdown-time" role="button">
                             Orario
                         </a>
 
-                        <div class="dropdown-menu" id="timefilm" aria-labelledby="dropdownMenuLink">
+                        <div aria-labelledby="dropdownMenuLink" class="dropdown-menu" id="timefilm">
                             <!-- CODICE IN ARRIVO -->
                         </div>
                     </div>
-                    <button type="button" class="btn btn-warning align-right" id="prenotazione">Prenota</button>
+                    <button class="btn btn-warning align-right" id="prenotazione" type="button">Prenota</button>
                 </div>
             </div>
             <div class="col-2"></div>
@@ -47,7 +47,7 @@
                 <div class="row d-flex justify-content-around">
                     <!-- Button trigger modal LOG OUT -->
                     <form action="/logout" class="form-singin" method="POST">
-                        <button type="submit" class="btn btn-primary">
+                        <button class="btn btn-primary" type="submit">
                             Log Out
                         </button>
                     </form>
@@ -66,11 +66,54 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-3"></div>
-    <div class="col-6">
-        <p class="filmtitle"> {{ title }} </p>
-        <p>Giorno: {{ date }} </p>
-        <p>Ora: {{ time }}</p>
+        <div class="col-2"></div>
+    <div class="col-8">
+        <p class="filmtitle">TITOLO: {{ movie.titolo }} </p>
+        <p class="filmtitle">DURATA: {{ movie.durata }} </p>
+        <p>Giorno: {{ proiezione.data }} </p>
+        <p>Ora: {{ proiezione.orario }}</p>
+
+
+
+        <select id="numPosti" name="numPosti">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+        <table class="sala">
+<tr>
+    <th></th>
+    {% for y in range(0, colonna)%}
+        <th style="background-color:gainsboro">
+    {{y}}
+        </th>
+        {% endfor %}
+</tr>
+    {%for x in range(0, riga)%}
+
+    <tr>
+        <th style="background-color:gainsboro">
+        {{x}}
+        </th>
+        {% for y in range(0, colonna)%}
+
+
+        <td class=" {{ occupato if False else 'libero' }}" data-colonna="{{y}}" data-riga="{{x}}">
+
+        </td>
+
+        {% endfor %}
+    </tr>
+   {% endfor %}
+        </table>
+        <form action="/acquista" method="POST">
+            <input id="posti" name="posti" type="text" value="">
+            <input name="idproiezione" type="text" value="{{ proiezione.idproiezione }}">
+            <button type="submit">ACQUISTA</button>
+        </form>
+
+
         <table class="table table-bordered table-dark">
           <!-- Codice html generato -->
             <thead>
@@ -84,9 +127,9 @@
           <tbody>
             <tr>
               <th scope="row">A</th>
-              <td class="sala-icon" fila="C" numero="1" color-posto="green"> <img id id src="{{ url_for('static', filename='img/armchair-green.png') }}"/><img src="{{ url_for('static', filename='img/armchair.png') }}"/></td>
-              <td class="sala-icon"> <img fila="C" numero="2" color-posto="red" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
-              <td class="sala-icon"> <img fila="C" numero="3" color-posto="red" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
+              <td class="sala-icon" color-posto="green" fila="C" numero="1"> <img id id src="{{ url_for('static', filename='img/armchair-green.png') }}"/><img src="{{ url_for('static', filename='img/armchair.png') }}"/></td>
+              <td class="sala-icon"> <img color-posto="red" fila="C" numero="2" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
+              <td class="sala-icon"> <img color-posto="red" fila="C" numero="3" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
             </tr>
             <tr>
               <th scope="row">B</th>
@@ -96,9 +139,9 @@
             </tr>
             <tr>
                 <th scope="row">C</th>
-                <td class="sala-icon"> <img color-posto="red" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
+                <td class="sala-icon"> <img color-posto="red" src="{{ url_for('static', filename='img/sedie/armchair-red.png') }}"/></td>
                 <td class="sala-icon"> <img color-posto="yellow" src="{{ url_for('static', filename='img/armchair-yellow.png') }}"/></td>
-                <td class="sala-icon"> <div class="image"> <img fila="A" numero="3" color-posto="yellow" src="{{ url_for('static', filename='img/armchair-yellow.png') }}"/><img fila="A" numero="3" color-posto="green" src="{{ url_for('static', filename='img/armchair-green.png') }}"/></div></td>
+                <td class="sala-icon"> <div class="image"> <img color-posto="yellow" fila="A" numero="3" src="{{ url_for('static', filename='img/armchair-yellow.png') }}"/><img color-posto="green" fila="A" numero="3" src="{{ url_for('static', filename='img/armchair-green.png') }}"/></div></td>
             </tr>
           </tbody>
 

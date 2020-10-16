@@ -14,7 +14,9 @@ import decimal
 app = Flask(__name__)
 app.secret_key = 'itsreallysecret'
 
-engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+# ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
+# engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 # login_manager = LoginManager()
@@ -51,7 +53,7 @@ utente = Table('utente', metadata,
 
 admin = Table('admin', metadata,
               Column('idadmin', Integer, primary_key=True),
-              Column('email', String),
+              Column('identificativo', Integer),
               Column('password', String)
               )
 
@@ -154,6 +156,8 @@ class User(UserMixin):
     def __repr__(self):
         return f'<User: {self.email}>'
 
+    # users.append(User(id=1, email='antonio@gmail.com', password='password'))
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -183,7 +187,7 @@ def alchemyencoder(obj):
 # pagina principale per utenti loggati e non
 @app.route('/')
 def home_page():
-    films = conn.execute("select titolo from film")
+    films = conn.execute("select * from film")
 
     return render_template('index.html', movies=films)
 
@@ -192,7 +196,7 @@ def home_page():
 @app.route('/logged-bad-rendering')
 @login_required
 def home_logged():
-    films = conn.execute("select titolo from film")
+    films = conn.execute("select * from film")
     return render_template('login.html', movies=films)
 
 
@@ -218,27 +222,79 @@ def selectime():
         movie['date'] + "' and film.titolo='" + movie['title'] + "'")
     return json.dumps([dict(r) for r in time], default=alchemyencoder)
 
+@app.route('/film/<idFilm>', methods=['GET'])
+@login_required
+def film(idFilm):
+    #query a db per recuperare entità film con id idFilm
+    film = conn.execute("select * from film where idfilm =" + idFilm).fetchone()
+    proiezioni =  conn.execute("select * from proiezione  where proiezione.idfilm =" + idFilm)
+
+    return render_template('base_film.html', movie=film, proiezioni=proiezioni )
+
+
 
 # render alla pagina di prenotazione dei biglietti
-@app.route('/prenotazione', methods=['POST'])
+@app.route('/prenotazione/<idProiezione>', methods=['GET'])
 @login_required
-def prenotazione():
-    movie = {}
-    movie['title'] = request.json['title']
-    movie['date'] = request.json['date']
-    movie['time'] = request.json['time']
-    films = conn.execute("select titolo from film")
-    righe = conn.execute(
-        "select sala.numcolonne, sala.numrighe FROM sala INNER JOIN proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
-        " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
-            'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
-    colonne = conn.execute(
-        "select sala.numcolonne FROM sala inner join proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
-        " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
-            'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
-    return render_template('prenotazione.html', movies=films, posti=righe, column=colonne, title=movie['title'],
-                           date=movie['date'], time=movie['time'])
-    # default=alchemyencoder
+def prenotazione(idProiezione):
+    #movie = {}
+    #movie['title'] = request.json['title']
+    #movie['date'] = request.json['date']
+    #movie['time'] = request.json['time']
+    #print(movie)
+
+    proiezione = conn.execute("select * from proiezione where idproiezione="+idProiezione).fetchone()
+    print(proiezione.idfilm)
+    film = conn.execute("select * from film where idfilm=" + str(proiezione.idfilm)).fetchone()
+    sala = conn.execute("select * from sala where idsala=" + str(proiezione.idsala)).fetchone()
+    riga = sala.numfila
+    colonna = sala.numcolonne
+    #biglietti = conn.execute("select riga,colonna from biglietti where idproiezione="+idProiezione).fetchone()
+    #righe = conn.execute(
+    #    "select sala.numrighe FROM sala INNER JOIN proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
+    #    " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
+    #        'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
+    #colonne = conn.execute(
+     #   "select sala.numcolonne FROM sala inner join proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
+     #   " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
+    #        'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
+    return render_template('prenotazione.html', movie=film, proiezione= proiezione, riga=riga,colonna=colonna)#title=movie['title'], date=movie['date'], time=movie['time'] )
+    #         default=alchemyencoder          posti=righe, column=colonne,
+
+
+@app.route('/acquista/<idProiezione>', methods=['POST'])
+@login_required
+def do_prenotazione(idProiezione):
+
+    queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]). \
+        where(persona.c.nomecognome == bindparam('nomeRegista'))
+    dbDirector = conn.execute(queryDbDirector, nomeRegista=director)  # eseguo la ricerca
+
+
+    posto = (request.form)
+
+    queryidSala = select([sala.c.idsala]) .\
+        where(sala.c.idproiezione==idProiezione)
+    idSala = conn.execute(queryidSala)
+    queryIdPosto = select([posto.c.idposto]) .\
+        where(posto.c.numero==posto[1] and (posto.c.fila==posto[0]) and (posto.c.idsala==idSala))
+
+    # sto finendo ioo
+    conn.execute(insreg, [
+        {
+            'idproiezione': idProiezione, 'idposto': (),
+            'password': passwordreg, 'nome': namereg,
+            'cognome': surnamereg, 'datanascita': birthreg,
+            'sesso': sexreg, 'numfigli': sonsreg,
+            'residenza': addressreg, 'numcell': cellphonereg
+        }
+    ])
+    #insert nuovi biglietti
+
+    ##prepari dati a vista acquista
+    #ritorni vista acquista
+
+    return 0
 
 
 # LOGIN
@@ -248,8 +304,17 @@ def login():
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
-        if form_email.isdecimal():
-            print("madafaka")
+        id_admin = form_email.split('@')
+        #if id_admin[0].isdecimal():
+        #    #admin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
+        #    adminQuery = select([admin.c.identificativo, admin.c.password]).\
+        #        where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
+        #    adminCredentials = conn.execute(adminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
+        #    if adminCredentials is None:
+       #         return home_page()
+      #      return render_template('admin_page.html')
+
+
 
         print(form_email)
         print(form_passw)
@@ -302,8 +367,7 @@ def register():
         }
 
     ])
-    films = conn.execute("SELECT titolo FROM film")
-    return render_template('index.html', movies=films);
+    return home_logged()
 
 
 @app.route('/logout', methods=['POST'])
