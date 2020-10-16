@@ -14,7 +14,6 @@ import decimal
 app = Flask(__name__)
 app.secret_key = 'itsreallysecret'
 
-# ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
@@ -418,7 +417,8 @@ def insert_film():
     ###### SALVATAGGIO DELLA LOCANDINA
     image = request.files["image"]
 
-    image.save('C:\Users\Riccardo\Documents\PyCharmProjects\Cinema_Basi\static\img\Locandine', image)
+    image.save('.\static\img\Locandine', image)
+
     print("Immagine salvata")
 
     return render_template("admin_page.html")
