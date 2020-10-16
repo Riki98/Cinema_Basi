@@ -16,7 +16,7 @@ app.secret_key = 'itsreallysecret'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 # engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:12358@localhost:5432/Cinema_Basi')
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 # login_manager = LoginManager()
@@ -423,7 +423,7 @@ def insert_film():
     ###### SALVATAGGIO DELLA LOCANDINA
     image = request.files["image"]
 
-    image.save('C:\Users\Riccardo\Documents\PyCharmProjects\Cinema_Basi\templates\templates_film', image)
+    #image.save('C:\Users\Riccardo\Documents\PyCharmProjects\Cinema_Basi\templates\templates_film', image)
     print("Immagine salvata")
 
     return render_template("admin_page.html")
