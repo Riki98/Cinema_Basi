@@ -15,8 +15,7 @@ app = Flask(__name__)
 app.secret_key = 'itsreallysecret'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-# engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:12358@localhost:5432/Cinema_Basi')
+engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 # login_manager = LoginManager()
@@ -155,8 +154,6 @@ class User(UserMixin):
 
     def __repr__(self):
         return f'<User: {self.email}>'
-
-    # users.append(User(id=1, email='antonio@gmail.com', password='password'))
 
 
 @login_manager.user_loader
@@ -331,19 +328,14 @@ def insert_film():
     newYearPubb = request.form["newYearPubb"]
     newMinAge = request.form["newMinAge"]
 
+    idFilmDB = select([max(film.c.idfilm)]) + 1
     # Controllo se il film sia già presente nel database
-    isThereQueryWow = select([film.c.titolo, film.c.anno]).\
-                      where(film.c.titolo == newTitle)
-    ## DA FINIRE#####################################################################################################################################
-    isThereQuery = "SELECT titolo, anno FROM film WHERE titolo = ? AND anno = ?"
-    isThereQuery.setString(1, newTitle)
-    isThereQuery.setString(2, newYearPubb)
-    isThere = conn.execute(isThereQuery).fetchone()[0]
+    isThereQuery = select([film.c.titolo, film.c.anno]).\
+                      where(film.c.titolo == bindparam('titoloFilm')).and_(film.c.anno == bindparam('annoFilm'))
+    isThere = conn.execute(isThereQuery, {'titoloFilm' : newTitle}, {'annoFilm' : newYearPubb}).fetchone()[0]
 
     if not isThere:
         # QUERY DI AGGIUNTA DI UN FILM
-        idFilmDB = select([max(film.c.idfilm)]) + 1
-        ## idFilmDB = conn.execute("SELECT MAX(idfilm) FROM film").fetchone()[0] + 1
         insNewFilm = film.insert()
         conn.execute(insNewFilm, [
             {
@@ -363,11 +355,11 @@ def insert_film():
     newMovDir = request.form["newMovDir"]
     arrayNewDirectors = newMovDir.split(', ')
     for director in arrayNewDirectors:
-        queryDbDirector = "SELECT idpersona, nomecognome FROM persona WHERE nomecognome = '?'" #cerco se c'è il regista
-        queryDbDirector.setString(1, director)
-        dbDirector = conn.execute(queryDbDirector) #eseguo la ricerca
-        insNewDirectorMovie = registafilm.insert()
+        queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]).\
+                            where(persona.c.nomecognome == bindparam('nomeRegista'))
+        dbDirector = conn.execute(queryDbDirector, {'nomeRegista' : director}) #eseguo la ricerca
 
+        insNewDirectorMovie = registafilm.insert()
         if len(dbDirector) != 0: #se è già presente
             conn.execute(insNewDirectorMovie, [
                 {
@@ -375,8 +367,10 @@ def insert_film():
                 }
             ])
         else: #se invece non c'è
+
             #inserisco prima la persona
-            idMaxPersonaDB = conn.execute("SELECT MAX(idpersona) FROM persona").fetchone()[0] + 1
+            queryMaxPersonaDB = select([func.max(persona.c.idpersona)])
+            idMaxPersonaDB = conn.execute(queryMaxPersonaDB).fetchone()[0] + 1
             insNewDirector = persona.insert()
             conn.execute(insNewDirector, [
                 {
@@ -394,36 +388,37 @@ def insert_film():
     newActors = request.form["newActors"]
     arrayNewActors = newMovDir.split(', ')
     for actor in arrayNewActors:
-        queryDbActor = "SELECT idpersona, nomecognome FROM persona WHERE nomecognome = '?'"  # cerco se c'è l'attore
-        queryDbActor.setString(1, actor)
-        dbActors = conn.execute(queryDbActor)  # eseguo la ricerca
+        queryDbActor = select([persona.c.idpersona, persona.c.nomecognome]).\
+            where(persona.c.nomecognome == bindparam('nomeAttore'))
+        dbActors = conn.execute(queryDbActor, {'nomeAttore': actor})  # eseguo la ricerca
         insNewActorsMovie = registafilm.insert()
         if len(dbActors) != 0:  # se è già presente
             conn.execute(insNewActorsMovie, [
                 {
-                    'idregista': dbActors[0], 'idfilm': idFilmDB
+                    'idattore': dbActors[0], 'idfilm': idFilmDB
                 }
             ])
         else:  # se invece non c'è
             # inserisco prima la persona
-            idMaxPersonaDB = conn.execute("SELECT MAX(idpersona) FROM persona").fetchone()[0] + 1
+            idMaxPersonaDB = select([max(persona.c.idpersona)])
+            idNewPersona = conn.execute(idMaxPersonaDB).fetchone()[0] + 1
             insNewActors = persona.insert()
             conn.execute(insNewActors, [
                 {
-                    'idpersona': idMaxPersonaDB, 'nomecognome': actor
+                    'idpersona': idNewPersona, 'nomecognome': actor
                 }
             ])
             # poi aggiungo il collegamento ad attorefilm
             conn.execute(insNewActorsMovie, [
                 {
-                    'idregista': idMaxPersonaDB, 'idfilm': idFilmDB
+                    'idattore': idNewPersona, 'idfilm': idFilmDB
                 }
             ])
 
     ###### SALVATAGGIO DELLA LOCANDINA
     image = request.files["image"]
 
-    image.save('C:\Users\Riccardo\Documents\PyCharmProjects\Cinema_Basi\templates\templates_film', image)
+    image.save('C:\Users\Riccardo\Documents\PyCharmProjects\Cinema_Basi\static\img\Locandine', image)
     print("Immagine salvata")
 
     return render_template("admin_page.html")
