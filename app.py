@@ -123,7 +123,8 @@ login_manager.login_view = 'login'
 
 
 users = []
-users = conn.execute('select idutente from utente')
+queryUser = select([utente.c.idutente])
+users = conn.execute(queryUser)
 active_users = []
 
 
@@ -175,7 +176,6 @@ def load_user(user_id):
 
 # fun: permette di serializzare i dati per le conversioni json
 def alchemyencoder(obj):
-    """JSON encoder function for SQLAlchemy special classes."""
     if isinstance(obj, datetime.date):  # data
         return obj.isoformat()
     elif isinstance(obj, datetime.time):  # ora
@@ -187,8 +187,7 @@ def alchemyencoder(obj):
 # pagina principale per utenti loggati e non
 @app.route('/')
 def home_page():
-    films = conn.execute("select * from film")
-
+    films = conn.execute(select([film]))
     return render_template('index.html', movies=films)
 
 
@@ -196,7 +195,7 @@ def home_page():
 @app.route('/logged-bad-rendering')
 @login_required
 def home_logged():
-    films = conn.execute("select * from film")
+    films = conn.execute(select([film]))
     return render_template('login.html', movies=films)
 
 
@@ -205,9 +204,11 @@ def home_logged():
 def selectday():
     movie = {}
     movie['title'] = request.json['title']
-    data = conn.execute(
-        "select distinct proiezione.data from film inner join proiezione on film.idfilm=proiezione.idfilm where film.titolo='" +
-        movie['title'] + "'")
+    queryData = select(distinct(proiezione.c.data)).select_from(film).join(proiezione, film.c.idfilm == proiezione.c.idfilm).where(film.c.titolo == bindparam("titoloFilm"))
+    data = conn.execute(queryData, titoloFilm=movie['title'])
+    ##data = conn.execute(
+        #"select distinct proiezione.data from film inner join proiezione on film.idfilm=proiezione.idfilm where film.titolo='" +
+        #movie['title'] + "'")
     return json.dumps([dict(r) for r in data], default=alchemyencoder)
 
 
@@ -217,19 +218,27 @@ def selectime():
     movie = {}
     movie['title'] = request.json['title']
     movie['date'] = request.json['date']
-    time = conn.execute(
-        "select proiezione.orario from film inner join proiezione on film.idfilm=proiezione.idfilm where proiezione.data='" +
-        movie['date'] + "' and film.titolo='" + movie['title'] + "'")
+    queryData = select(distinct(proiezione.c.orario)).select_from(film).\
+        join(proiezione, film.c.idfilm == proiezione.c.idfilm).\
+        where(proiezione.c.data == bindparam("dataFilm")).and_(film.c.titolo == bindparam("titoloFilm"))
+    time = conn.execute(queryData, dataFilm=movie['date'], titoloFilm=movie['title'])
+    #time = conn.execute(
+        #"select proiezione.orario from film inner join proiezione on film.idfilm=proiezione.idfilm where proiezione.data='" +
+        #movie['date'] + "' and film.titolo='" + movie['title'] + "'")
     return json.dumps([dict(r) for r in time], default=alchemyencoder)
 
 @app.route('/film/<idFilm>', methods=['GET'])
 @login_required
 def film(idFilm):
     #query a db per recuperare entità film con id idFilm
-    film = conn.execute("select * from film where idfilm =" + idFilm).fetchone()
-    proiezioni =  conn.execute("select * from proiezione  where proiezione.idfilm =" + idFilm)
+    queryFilm = select(film).where(film.c.idfilm == bindparam("idFilmRecuperato"))
+    filmPage = conn.execute(queryFilm, idFilmRecuperato=idFilm)
+    #film = conn.execute("select * from film where idfilm =" + idFilm).fetchone()
+    queryProiezioni = select(proiezione).where(film.c.idfilm == bindparam("idProiezioneRecuperato"))
+    proiezioni = conn.execute(queryProiezioni, idProiezioneRecuperato=idFilm)
+    #proiezioni = conn.execute("select * from proiezione where proiezione.idfilm =" + idFilm)
 
-    return render_template('base_film.html', movie=film, proiezioni=proiezioni )
+    return render_template('base_film.html', movie=filmPage, proiezioni=proiezioni)
 
 
 
@@ -243,12 +252,22 @@ def prenotazione(idProiezione):
     #movie['time'] = request.json['time']
     #print(movie)
 
-    proiezione = conn.execute("select * from proiezione where idproiezione="+idProiezione).fetchone()
-    print(proiezione.idfilm)
-    film = conn.execute("select * from film where idfilm=" + str(proiezione.idfilm)).fetchone()
-    sala = conn.execute("select * from sala where idsala=" + str(proiezione.idsala)).fetchone()
-    riga = sala.numfila
-    colonna = sala.numcolonne
+    queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam("idProiezioniRichieste"))
+    proiezioni = conn.execute(queryProiezione, idProiezioniRichieste=idProiezione).fetchone()
+    #proiezione = conn.execute("select * from proiezione where idproiezione="+idProiezione).fetchone()
+
+    print(proiezioni.idfilm)
+
+    #film = conn.execute("select * from film where idfilm=" + str(proiezione.idfilm)).fetchone()
+    queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam("idFilmProiezione"))
+    filmToBeBooked = conn.execute(queryFilmToBeBooked, idFilmProiezione=str(proiezione.c.idfilm))
+
+    querySeats = select([sala]).where(sala.c.idsala == bindparam("selezionePosti"))
+    seats = conn.execute(querySeats, selezionePosti=str(proiezione.c.idsala))
+    #sala = conn.execute("select * from sala where idsala=" + str(proiezione.idsala)).fetchone()
+
+    riga = seats.numfila
+    colonna = seats.numcolonne
     #biglietti = conn.execute("select riga,colonna from biglietti where idproiezione="+idProiezione).fetchone()
     #righe = conn.execute(
     #    "select sala.numrighe FROM sala INNER JOIN proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
@@ -258,7 +277,7 @@ def prenotazione(idProiezione):
      #   "select sala.numcolonne FROM sala inner join proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
      #   " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
     #        'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
-    return render_template('prenotazione.html', movie=film, proiezione= proiezione, riga=riga,colonna=colonna)#title=movie['title'], date=movie['date'], time=movie['time'] )
+    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione= proiezione, riga=riga, colonna=colonna)#title=movie['title'], date=movie['date'], time=movie['time'] )
     #         default=alchemyencoder          posti=righe, column=colonne,
 
 
@@ -331,7 +350,8 @@ def login():
         login_user(User(real_id, real_email, real_pwd))  # appoggio a flask_login
         active_users.append(real_id)
         print("Logged in successfully.")
-        films = conn.execute("SELECT titolo FROM film")
+        filmLogin = select([film.c.titolo])
+        films = conn.execute(filmLogin)
         return home_logged()
     else:
         return home_page()
@@ -340,8 +360,8 @@ def login():
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    id = conn.execute("SELECT MAX(idutente) FROM utente")
 
+    id = conn.execute(select([func.max(utente.c.idutente)]))
     myid = id.fetchone()[0]
 
     mailreg = request.form["emailReg"]
