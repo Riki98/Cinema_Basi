@@ -327,13 +327,13 @@ def insert_film():
     newYearPubb = request.form["newYearPubb"]
     newMinAge = request.form["newMinAge"]
 
-    idFilmDB = select([max(film.c.idfilm)]) + 1
+    idFilmDB = select([func.max(film.c.idfilm)]) + 1
     # Controllo se il film sia già presente nel database
     isThereQuery = select([film.c.titolo, film.c.anno]).\
-                      where(film.c.titolo == bindparam('titoloFilm')).and_(film.c.anno == bindparam('annoFilm'))
-    isThere = conn.execute(isThereQuery, {'titoloFilm' : newTitle}, {'annoFilm' : newYearPubb}).fetchone()[0]
+                      where(and_(film.c.anno == bindparam('annoFilm'), film.c.titolo == bindparam('titoloFilm')))
+    isThere = conn.execute(isThereQuery, titoloFilm=newTitle, annoFilm=newYearPubb).fetchone()[0]
 
-    if not isThere:
+    if isThere is None:
         # QUERY DI AGGIUNTA DI UN FILM
         insNewFilm = film.insert()
         conn.execute(insNewFilm, [
@@ -356,10 +356,10 @@ def insert_film():
     for director in arrayNewDirectors:
         queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]).\
                             where(persona.c.nomecognome == bindparam('nomeRegista'))
-        dbDirector = conn.execute(queryDbDirector, {'nomeRegista' : director}) #eseguo la ricerca
+        dbDirector = conn.execute(queryDbDirector, nomeRegista=director) #eseguo la ricerca
 
         insNewDirectorMovie = registafilm.insert()
-        if len(dbDirector) != 0: #se è già presente
+        if dbDirector is not None: #se è già presente
             conn.execute(insNewDirectorMovie, [
                 {
                     'idregista': dbDirector[0], 'idfilm': idFilmDB
@@ -389,9 +389,9 @@ def insert_film():
     for actor in arrayNewActors:
         queryDbActor = select([persona.c.idpersona, persona.c.nomecognome]).\
             where(persona.c.nomecognome == bindparam('nomeAttore'))
-        dbActors = conn.execute(queryDbActor, {'nomeAttore': actor})  # eseguo la ricerca
+        dbActors = conn.execute(queryDbActor, nomeAttore=actor)  # eseguo la ricerca
         insNewActorsMovie = registafilm.insert()
-        if len(dbActors) != 0:  # se è già presente
+        if dbActors is not None:  # se è già presente
             conn.execute(insNewActorsMovie, [
                 {
                     'idattore': dbActors[0], 'idfilm': idFilmDB
@@ -399,7 +399,7 @@ def insert_film():
             ])
         else:  # se invece non c'è
             # inserisco prima la persona
-            idMaxPersonaDB = select([max(persona.c.idpersona)])
+            idMaxPersonaDB = select([func.max(persona.c.idpersona)])
             idNewPersona = conn.execute(idMaxPersonaDB).fetchone()[0] + 1
             insNewActors = persona.insert()
             conn.execute(insNewActors, [
