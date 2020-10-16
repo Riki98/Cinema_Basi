@@ -15,8 +15,8 @@ app = Flask(__name__)
 app.secret_key = 'itsreallysecret'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-# engine = create_engine('postgres://postgres:12358@localhost:5432/Cinema_Basi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+# engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/CinemaBasi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 # login_manager = LoginManager()
