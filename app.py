@@ -16,7 +16,7 @@ app.secret_key = 'itsreallysecret'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 # engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/CinemaBasi')
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 # login_manager = LoginManager()
@@ -63,11 +63,6 @@ sala = Table('sala', metadata,
              Column('is3d', Boolean)
              )
 
-registafilm = Table('registafilm', metadata,
-                    Column('idregista', Integer, foreign_key=True),
-                    Column('idfilm', Integer, foreign_key=True)
-                    )
-
 proiezione = Table('proiezioni', metadata,
                    Column('orario', Time),
                    Column('idsala', Integer),
@@ -101,6 +96,11 @@ attorefilm = Table('attorefilm', metadata,
                    Column('idfilm', Integer)
                    )
 
+registafilm = Table('registafilm', metadata,
+                    Column('idregista', Integer, foreign_key=True),
+                    Column('idfilm', Integer, foreign_key=True)
+                    )
+
 metadata.create_all(engine)
 
 # apertura connessione al DB
@@ -109,6 +109,7 @@ conn = engine.connect()
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
 
 # class LoginForm(FlaskForm):
 #    username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
@@ -122,8 +123,9 @@ login_manager.login_view = 'login'
 # password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
 
 
-queryUser = select([utente.c.idutente])
-users = conn.execute(queryUser)
+#users = []
+#queryUser = select([utente.c.idutente])
+#users = conn.execute(queryUser)
 active_users = []
 
 
@@ -184,18 +186,11 @@ def alchemyencoder(obj):
 
 
 # pagina principale per utenti loggati e non
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home_page():
-    films = conn.execute(select([film]))
+    films = conn.execute("select * from film")
+    #films = conn.execute(select([film.c.titolo]).select_from(film))
     return render_template('index.html', movies=films)
-
-
-# stessa pagina ma per utente loggato, permette nuove funzioni
-@app.route('/logged-bad-rendering')
-@login_required
-def home_logged():
-    films = conn.execute(select([film]))
-    return render_template('login.html', movies=films)
 
 
 # ajax richiesta giorni per film
@@ -296,15 +291,14 @@ def do_prenotazione(idProiezione):
     idSala = conn.execute(queryidSala)
     queryIdPosto = select([posto.c.idposto]) .\
         where(posto.c.numero==posto[1] and (posto.c.fila==posto[0]) and (posto.c.idsala==idSala))
+    idPosto = conn.execute(queryIdPosto)
+    idUtente = user.get_id()
 
     # sto finendo ioo
     conn.execute(insreg, [
         {
-            'idproiezione': idProiezione, 'idposto': (),
-            'password': passwordreg, 'nome': namereg,
-            'cognome': surnamereg, 'datanascita': birthreg,
-            'sesso': sexreg, 'numfigli': sonsreg,
-            'residenza': addressreg, 'numcell': cellphonereg
+            'idproiezione': idProiezione, 'idposto': idPosto,
+            'idutente': idUtente
         }
     ])
     #insert nuovi biglietti
@@ -323,21 +317,16 @@ def login():
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
         id_admin = form_email.split('@')
-        #if id_admin[0].isdecimal():
-        #    #admin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
-        #    adminQuery = select([admin.c.identificativo, admin.c.password]).\
-        #        where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
-        #    adminCredentials = conn.execute(adminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
-        #    if adminCredentials is None:
-        #         return home_page()
-        #    else :
-        #         return return render_template('admin_logged.html', idadmin=id) ####### MI SERVE L'ID DELL'ADMIN
-        #    return render_template('add_film_admin.html')
-
-
-
-        print(form_email)
-        print(form_passw)
+        if id_admin[0].isdecimal():
+            print("Welcome admin?")
+            admin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
+            adminQuery = select([admin.c.identificativo, admin.c.password]).\
+                where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
+            adminCredentials = conn.execute(adminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
+            if adminCredentials is None:
+                return home_page()
+            else:
+                return render_template('admin_page.html')
 
         user = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
 
@@ -348,14 +337,14 @@ def login():
     real_pwd = str(user[2]).strip()
 
     if form_passw == real_pwd:
+        user.authenticated = True
         login_user(User(real_id, real_email, real_pwd))  # appoggio a flask_login
         active_users.append(real_id)
         print("Logged in successfully.")
         filmLogin = select([film.c.titolo])
         films = conn.execute(filmLogin)
-        return home_logged()
-    else:
-        return home_page()
+
+    return home_page()
 
 
 # REGISTER
@@ -375,7 +364,7 @@ def register():
     cellphonereg = request.form["cellReg"]
     sexreg = request.form["sexReg"]
     sonsreg = request.form["nSonReg"]
-    # inserimento dell'utente nel db
+    # insert into the db
     insreg = utente.insert()
 
     conn.execute(insreg, [
@@ -388,12 +377,17 @@ def register():
         }
 
     ])
+    user.authenticated = True
+    login_user(User(myid, email, passwordreg))  # appoggio a flask_login
+    active_users.append(real_id)
     return home_logged()
 
 
 @app.route('/logout', methods=['POST'])
 @login_required
 def logout():
+    user = current_user
+    user.authenticated = False
     logout_user()
     return home_page()
 
@@ -506,13 +500,14 @@ def insert_film():
 
     print("Immagine salvata")
 
-    return render_template("add_film_admin.html")
+    return render_template("admin_page.html")
+
 
 
 @app.route('/admin_page')
 @login_required
 def load_admin():
-    redirect(url_for('add_film_admin.html'))
+    redirect(url_for('admin_page.html'))
 
 
 if __name__ == '__main__':
