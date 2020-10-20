@@ -4,7 +4,13 @@ from flask import Flask, render_template, request, json, redirect, url_for
 
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import *
+from sqlalchemy import Sequence
+from sqlalchemy import create_engine
+from sqlalchemy import func
+
 
 from urllib.parse import urlparse, urljoin
 # TYPE import
@@ -12,15 +18,12 @@ import datetime
 import decimal
 
 app = Flask(__name__)
-app.secret_key = 'itsreallysecret'
+#app.secret_key = 'itsreallysecret'
+#app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 # engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
 engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
-
-app.config['SECRET_KEY'] = 'secretcinemaucimg'
-# login_manager = LoginManager()
-# login_manager.init_app(app)
 
 metadata = MetaData()
 
@@ -40,7 +43,7 @@ film = Table('film', metadata,
 
 utente = Table('utente', metadata,
                Column('email', String),
-               Column('idutente', Integer, primary_key=True),
+               Column('idutente', Integer, Sequence('user_id_sequence'), primary_key=True),
                Column('password', String),
                Column('nome', String),
                Column('cognome', String),
@@ -51,7 +54,7 @@ utente = Table('utente', metadata,
                Column('numcell', String)
                )
 
-admin = Table('admin', metadata,
+amministratore = Table('admin', metadata,
               Column('idadmin', Integer, primary_key=True),
               Column('identificativo', Integer),
               Column('password', String)
@@ -79,12 +82,6 @@ posto = Table('posto', metadata,
               Column('numero', Integer)
               )
 
-# non mi ricordo a cosa serva questa tabella
-persona = Table('persona', metadata,
-                Column('idpersona', Integer, primary_key=True),
-                Column('nomecognome', String)
-                )
-
 biglietto = Table('biglietto', metadata,
                   Column('idposto', Integer),
                   Column('idproiezione', Integer),
@@ -92,14 +89,19 @@ biglietto = Table('biglietto', metadata,
                   )
 
 attorefilm = Table('attorefilm', metadata,
-                   Column('idattore', Integer),
+                   Column('idpersona', Integer),
                    Column('idfilm', Integer)
                    )
 
 registafilm = Table('registafilm', metadata,
-                    Column('idregista', Integer, foreign_key=True),
+                    Column('idpersona', Integer, foreign_key=True),
                     Column('idfilm', Integer, foreign_key=True)
                     )
+
+persona = Table('persona', metadata,
+                Column('idpersona', Integer, primary_key=True),
+                Column('nomecognome', String)
+                )
 
 metadata.create_all(engine)
 
@@ -110,18 +112,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-
-# class LoginForm(FlaskForm):
-#    username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
-#  password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
-#  remember = BooleanField('remember me')
-
-
-# class RegisterForm(FlaskForm):
-#   email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=20)])
-#  username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
-# password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
-
+#db = SQLAlchemy()
 
 #users = []
 #queryUser = select([utente.c.idutente])
@@ -136,16 +127,13 @@ class User(UserMixin):
         self.pwd = pwd
 
     def is_authenticated(self):
-        for identifier in users:
-            if self.get_id() == identifier:
-                return true
-        return false
+        self.authenticated
 
     def is_active(self):
         for identifier in active_users:
             if self.get_id() == identifier:
-                return true
-        return false
+                return True
+        return False
 
     def is_anonymous(self):
         if self.is_authenticated() == true:
@@ -160,6 +148,14 @@ class User(UserMixin):
 
     # users.append(User(id=1, email='antonio@gmail.com', password='password'))
 
+# Controller ereditata da ModelView
+class Controller(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+    def not_authenticated(self):
+        return "Utente non autorizzato alla sessione admin"
+
+#admin.add_view(Controller(User, db.session)) # Controller / ModelView
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -188,38 +184,9 @@ def alchemyencoder(obj):
 # pagina principale per utenti loggati e non
 @app.route('/', methods=['GET'])
 def home_page():
-    films = conn.execute("select * from film")
-    #films = conn.execute(select([film.c.titolo]).select_from(film))
+    films = conn.execute(select([film.c.titolo]))
     return render_template('index.html', movies=films)
 
-
-# ajax richiesta giorni per film
-@app.route('/selectday', methods=['POST'])
-def selectday():
-    movie = {}
-    movie['title'] = request.json['title']
-    queryData = select(distinct(proiezione.c.data)).select_from(film).join(proiezione, film.c.idfilm == proiezione.c.idfilm).where(film.c.titolo == bindparam("titoloFilm"))
-    data = conn.execute(queryData, titoloFilm=movie['title'])
-    ##data = conn.execute(
-        #"select distinct proiezione.data from film inner join proiezione on film.idfilm=proiezione.idfilm where film.titolo='" +
-        #movie['title'] + "'")
-    return json.dumps([dict(r) for r in data], default=alchemyencoder)
-
-
-# ajax richiesta orari per film e giorno
-@app.route('/selectime', methods=['POST'])
-def selectime():
-    movie = {}
-    movie['title'] = request.json['title']
-    movie['date'] = request.json['date']
-    queryData = select(distinct(proiezione.c.orario)).select_from(film).\
-        join(proiezione, film.c.idfilm == proiezione.c.idfilm).\
-        where(proiezione.c.data == bindparam("dataFilm")).and_(film.c.titolo == bindparam("titoloFilm"))
-    time = conn.execute(queryData, dataFilm=movie['date'], titoloFilm=movie['title'])
-    #time = conn.execute(
-        #"select proiezione.orario from film inner join proiezione on film.idfilm=proiezione.idfilm where proiezione.data='" +
-        #movie['date'] + "' and film.titolo='" + movie['title'] + "'")
-    return json.dumps([dict(r) for r in time], default=alchemyencoder)
 
 @app.route('/film/<idFilm>', methods=['GET'])
 @login_required
@@ -227,42 +194,42 @@ def film(idFilm):
     #query a db per recuperare entità film con id idFilm
     queryFilm = select(film).where(film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, idFilmRecuperato=idFilm)
-    #film = conn.execute("select * from film where idfilm =" + idFilm).fetchone()
+
     queryProiezioni = select(proiezione).where(film.c.idfilm == bindparam("idProiezioneRecuperato"))
     proiezioni = conn.execute(queryProiezioni, idProiezioneRecuperato=idFilm)
-    #proiezioni = conn.execute("select * from proiezione where proiezione.idfilm =" + idFilm)
 
     return render_template('base_film.html', movie=filmPage, proiezioni=proiezioni)
 
-
+#film = conn.execute("select * from film where idfilm =" + idFilm).fetchone()
+#proiezioni = conn.execute("select * from proiezione where proiezione.idfilm =" + idFilm)
 
 # render alla pagina di prenotazione dei biglietti
 @app.route('/prenotazione/<idProiezione>', methods=['GET'])
 @login_required
 def prenotazione(idProiezione):
-    #movie = {}
-    #movie['title'] = request.json['title']
-    #movie['date'] = request.json['date']
-    #movie['time'] = request.json['time']
-    #print(movie)
 
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam("idProiezioniRichieste"))
     proiezioni = conn.execute(queryProiezione, idProiezioniRichieste=idProiezione).fetchone()
-    #proiezione = conn.execute("select * from proiezione where idproiezione="+idProiezione).fetchone()
 
     print(proiezioni.idfilm)
 
-    #film = conn.execute("select * from film where idfilm=" + str(proiezione.idfilm)).fetchone()
     queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam("idFilmProiezione"))
     filmToBeBooked = conn.execute(queryFilmToBeBooked, idFilmProiezione=str(proiezione.c.idfilm))
 
     querySeats = select([sala]).where(sala.c.idsala == bindparam("selezionePosti"))
     seats = conn.execute(querySeats, selezionePosti=str(proiezione.c.idsala))
-    #sala = conn.execute("select * from sala where idsala=" + str(proiezione.idsala)).fetchone()
 
     riga = seats.numfila
     colonna = seats.numcolonne
-    #biglietti = conn.execute("select riga,colonna from biglietti where idproiezione="+idProiezione).fetchone()
+
+    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione= proiezione, riga=riga, colonna=colonna)#title=movie['title'], date=movie['date'], time=movie['time'] )
+    #         default=alchemyencoder          posti=righe, column=colonne,
+
+#proiezione = conn.execute("select * from proiezione where idproiezione="+idProiezione).fetchone()
+#film = conn.execute("select * from film where idfilm=" + str(proiezione.idfilm)).fetchone()
+#sala = conn.execute("select * from sala where idsala=" + str(proiezione.idsala)).fetchone()
+
+ #biglietti = conn.execute("select riga,colonna from biglietti where idproiezione="+idProiezione).fetchone()
     #righe = conn.execute(
     #    "select sala.numrighe FROM sala INNER JOIN proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
     #    " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
@@ -271,9 +238,6 @@ def prenotazione(idProiezione):
      #   "select sala.numcolonne FROM sala inner join proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
      #   " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
     #        'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
-    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione= proiezione, riga=riga, colonna=colonna)#title=movie['title'], date=movie['date'], time=movie['time'] )
-    #         default=alchemyencoder          posti=righe, column=colonne,
-
 
 @app.route('/acquista/<idProiezione>', methods=['POST'])
 @login_required
@@ -292,16 +256,17 @@ def do_prenotazione(idProiezione):
     queryIdPosto = select([posto.c.idposto]) .\
         where(posto.c.numero==posto[1] and (posto.c.fila==posto[0]) and (posto.c.idsala==idSala))
     idPosto = conn.execute(queryIdPosto)
-    idUtente = user.get_id()
+    idUtente = current_user.get_id()
 
-    # sto finendo ioo
+    # insert nuovi biglietti
+    insreg = biglietto.insert
     conn.execute(insreg, [
         {
             'idproiezione': idProiezione, 'idposto': idPosto,
             'idutente': idUtente
         }
     ])
-    #insert nuovi biglietti
+
 
     ##prepari dati a vista acquista
     #ritorni vista acquista
@@ -312,13 +277,13 @@ def do_prenotazione(idProiezione):
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    user = None
+    utente_log = None
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
         id_admin = form_email.split('@')
         if id_admin[0].isdecimal():
-            print("Welcome admin?")
+            print("Welcome admin?")  # ricky non capisco sta query se è giusta controlla
             admin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
             adminQuery = select([admin.c.identificativo, admin.c.password]).\
                 where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
@@ -328,21 +293,19 @@ def login():
             else:
                 return render_template('admin_page.html')
 
-        user = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
+        utente_log = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
 
-    if user is None:
+    if utente_log is None:
         return home_page()
-    real_id = int(user[1])
-    real_email = str(user[0]).strip()
-    real_pwd = str(user[2]).strip()
+    real_id = int(utente_log[1])
+    real_email = str(utente_log[0]).strip()
+    real_pwd = str(utente_log[2]).strip()
 
     if form_passw == real_pwd:
-        user.authenticated = True
+        current_user.authenticated = True
         login_user(User(real_id, real_email, real_pwd))  # appoggio a flask_login
         active_users.append(real_id)
         print("Logged in successfully.")
-        filmLogin = select([film.c.titolo])
-        films = conn.execute(filmLogin)
 
     return home_page()
 
