@@ -122,7 +122,6 @@ login_manager.login_view = 'login'
 # password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=30)])
 
 
-users = []
 queryUser = select([utente.c.idutente])
 users = conn.execute(queryUser)
 active_users = []
@@ -330,8 +329,10 @@ def login():
         #        where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
         #    adminCredentials = conn.execute(adminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
         #    if adminCredentials is None:
-       #         return home_page()
-      #      return render_template('admin_page.html')
+        #         return home_page()
+        #    else :
+        #         return return render_template('admin_logged.html', idadmin=id) ####### MI SERVE L'ID DELL'ADMIN
+        #    return render_template('add_film_admin.html')
 
 
 
@@ -374,7 +375,7 @@ def register():
     cellphonereg = request.form["cellReg"]
     sexreg = request.form["sexReg"]
     sonsreg = request.form["nSonReg"]
-    # insert into the db
+    # inserimento dell'utente nel db
     insreg = utente.insert()
 
     conn.execute(insreg, [
@@ -505,13 +506,13 @@ def insert_film():
 
     print("Immagine salvata")
 
-    return render_template("admin_page.html")
+    return render_template("add_film_admin.html")
 
 
 @app.route('/admin_page')
 @login_required
 def load_admin():
-    redirect(url_for('admin_page.html'))
+    redirect(url_for('add_film_admin.html'))
 
 
 if __name__ == '__main__':

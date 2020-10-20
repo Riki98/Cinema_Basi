@@ -8,9 +8,9 @@
     <title>Admin</title>
 </head>
 
-<h1>Benvenuto <% if user %>
-    <% user %>
-    <% endif %>,
+<h1>Benvenuto {{ if user }}
+    {{ user }}
+    {{ endif }},
     admin supremo del cinema</h1>
 
 <br>
