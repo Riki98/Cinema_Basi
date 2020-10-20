@@ -81,7 +81,7 @@
             <option value="3">3</option>
             <option value="4">4</option>
         </select>
-        <table class="sala">
+        <table class="salatable table-bordered table-dark">
 <tr>
     <th></th>
     {% for y in range(0, colonna)%}
@@ -99,7 +99,7 @@
         {% for y in range(0, colonna)%}
 
 
-        <td class=" {{ occupato if False else 'libero' }}" data-colonna="{{y}}" data-riga="{{x}}">
+        <td class=" {{ occupato if False else 'libero' }} " data-colonna="{{y}}" data-riga="{{x}}">
 
         </td>
 
@@ -113,39 +113,6 @@
             <button type="submit">ACQUISTA</button>
         </form>
 
-
-        <table class="table table-bordered table-dark">
-          <!-- Codice html generato -->
-            <thead>
-            <tr>
-              <th scope="col">Posti</th>
-              <th scope="col">1</th>
-              <th scope="col">2</th>
-              <th scope="col">3</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">A</th>
-              <td class="sala-icon" color-posto="green" fila="C" numero="1"> <img id id src="{{ url_for('static', filename='img/armchair-green.png') }}"/><img src="{{ url_for('static', filename='img/armchair.png') }}"/></td>
-              <td class="sala-icon"> <img color-posto="red" fila="C" numero="2" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
-              <td class="sala-icon"> <img color-posto="red" fila="C" numero="3" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
-            </tr>
-            <tr>
-              <th scope="row">B</th>
-              <td class="sala-icon"> <img src="{{ url_for('static', filename='img/armchair.png') }}"/></td>
-              <td class="sala-icon" > <img color-posto="red" src="{{ url_for('static', filename='img/armchair-red.png') }}"/></td>
-              <td class="sala-icon"> <img src="{{ url_for('static', filename='img/armchair.png') }}"/></td>
-            </tr>
-            <tr>
-                <th scope="row">C</th>
-                <td class="sala-icon"> <img color-posto="red" src="{{ url_for('static', filename='img/sedie/armchair-red.png') }}"/></td>
-                <td class="sala-icon"> <img color-posto="yellow" src="{{ url_for('static', filename='img/armchair-yellow.png') }}"/></td>
-                <td class="sala-icon"> <div class="image"> <img color-posto="yellow" fila="A" numero="3" src="{{ url_for('static', filename='img/armchair-yellow.png') }}"/><img color-posto="green" fila="A" numero="3" src="{{ url_for('static', filename='img/armchair-green.png') }}"/></div></td>
-            </tr>
-          </tbody>
-
-        </table>
     </div>
     </div>
 
