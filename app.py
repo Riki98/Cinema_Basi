@@ -241,7 +241,6 @@ def do_prenotazione(idProiezione):
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    utente_log = None
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
