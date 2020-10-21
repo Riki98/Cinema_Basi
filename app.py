@@ -11,7 +11,7 @@ from sqlalchemy import select, insert
 from sqlalchemy import Sequence
 from sqlalchemy import create_engine
 from sqlalchemy import func
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Boolean, Date, Time
 
 from urllib.parse import urlparse, urljoin
 # TYPE import
@@ -23,8 +23,7 @@ app = Flask(__name__)
 # app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -128,18 +127,15 @@ class User(UserMixin):
         self.pwd = pwd
 
     def is_authenticated(self):
-        self.authenticated
+        return self.authenticated
 
     def is_active(self):
-        for identifier in active_users:
-            if self.get_id() == identifier:
-                return True
-        return False
+        return self.active
 
     def is_anonymous(self):
         if self.is_authenticated() == true:
-            return true
-        return false
+            return True
+        return False
 
     def get_id(self):
         return self.id
@@ -188,14 +184,14 @@ def alchemyencoder(obj):
 # pagina principale per utenti loggati e non
 @app.route('/', methods=['GET'])
 def home_page():
-    queryFilms = select([film.c.idfilm])
+    queryFilms = select([film.c.titolo])
     films = conn.execute(queryFilms)
     return render_template('index.html', movies=films)
 
 
 @app.route('/film/<idFilm>', methods=['GET'])
 @login_required
-def film(idFilm):
+def base_film(idFilm):
     # query a db per recuperare entità film con id idFilm
     queryFilm = select(film).where(film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, idFilmRecuperato=idFilm)
@@ -288,7 +284,6 @@ def login():
         id_admin = form_email.split('@')
         if id_admin[0].isdecimal():
             print("Welcome admin?")  # ricky non capisco sta query se è giusta controlla
-            selectAdmin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
             selectAdminQuery = select([admin.c.identificativo, admin.c.password]). \
                 where(
                 and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
@@ -346,9 +341,8 @@ def register():
 
     ])
     user.authenticated = True
-    login_user(User(myid, email, passwordreg))  # appoggio a flask_login
-    active_users.append(real_id)
-    return home_logged()
+    login_user(User(myid, mailreg, passwordreg))  # appoggio a flask_login
+    return home_page()
 
 
 @app.route('/logout', methods=['POST'])
