@@ -4,12 +4,14 @@ from flask import Flask, render_template, request, json, redirect, url_for
 
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from sqlalchemy import *
+from sqlalchemy import select, insert
 from sqlalchemy import Sequence
 from sqlalchemy import create_engine
 from sqlalchemy import func
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
 from urllib.parse import urlparse, urljoin
 # TYPE import
@@ -59,6 +61,11 @@ admin = Table('admin', metadata,
               Column('password', String)
               )
 
+persona = Table('persona', metadata,
+                Column('idpersona', Integer, primary_key=True),
+                Column('nomecognome', String)
+                )
+
 sala = Table('sala', metadata,
              Column('idsala', Integer, primary_key=True),
              Column('numposti', Integer),
@@ -88,19 +95,14 @@ biglietto = Table('biglietto', metadata,
                   )
 
 attorefilm = Table('attorefilm', metadata,
-                   Column('idpersona', Integer),
-                   Column('idfilm', Integer)
+                   Column('idpersona', Integer, ForeignKey(persona.c.idpersona)),
+                   Column('idfilm', Integer, ForeignKey(film.c.idfilm))
                    )
 
 registafilm = Table('registafilm', metadata,
-                    Column('idpersona', Integer, foreign_key=True),
-                    Column('idfilm', Integer, foreign_key=True)
+                    Column('idpersona', Integer, ForeignKey(persona.c.idpersona)),
+                    Column('idfilm', Integer, ForeignKey(film.c.idfilm))
                     )
-
-persona = Table('persona', metadata,
-                Column('idpersona', Integer, primary_key=True),
-                Column('nomecognome', String)
-                )
 
 metadata.create_all(engine)
 
@@ -149,12 +151,12 @@ class User(UserMixin):
 
 
 # Controller ereditata da ModelView
-class Controller(ModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated
-
-    def not_authenticated(self):
-        return "Utente non autorizzato alla sessione admin"
+#class Controller(ModelView):
+#    def is_accessible(self):
+#        return current_user.is_authenticated
+#
+#    def not_authenticated(self):
+#        return "Utente non autorizzato alla sessione admin"
 
 
 # admin.add_view(Controller(User, db.session)) # Controller / ModelView
@@ -186,7 +188,8 @@ def alchemyencoder(obj):
 # pagina principale per utenti loggati e non
 @app.route('/', methods=['GET'])
 def home_page():
-    films = conn.execute(select([film.c.titolo]))
+    queryFilms = select([film.c.idfilm])
+    films = conn.execute(queryFilms)
     return render_template('index.html', movies=films)
 
 
