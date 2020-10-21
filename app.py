@@ -7,8 +7,6 @@ from flask import Flask, render_template, request, json, redirect, url_for
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
-#from flask_admin import Admin
-#from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import select, insert, bindparam, Boolean, Time, Date
 from sqlalchemy import Sequence
 from sqlalchemy import create_engine
@@ -21,8 +19,8 @@ import datetime
 import decimal
 
 app = Flask(__name__)
-# app.secret_key = 'itsreallysecret'
-# app.config['SECRET_KEY'] = 'secretcinemaucimg'
+app.secret_key = 'itsreallysecret'
+app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
@@ -115,11 +113,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# db = SQLAlchemy()
-
-# users = []
-# queryUser = select([utente.c.idutente])
-# users = conn.execute(queryUser)
 active_users = []
 
 
@@ -146,19 +139,6 @@ class User(UserMixin):
     def __repr__(self):
         return f'<User: {self.email}>'
 
-    # users.append(User(id=1, email='antonio@gmail.com', password='password'))
-
-
-# Controller ereditata da ModelView
-#class Controller(ModelView):
-#    def is_accessible(self):
-#        return current_user.is_authenticated
-#
-#    def not_authenticated(self):
-#        return "Utente non autorizzato alla sessione admin"
-
-
-# admin.add_view(Controller(User, db.session)) # Controller / ModelView
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -204,10 +184,6 @@ def base_film(idFilm):
 
     return render_template('base_film.html', movie=filmPage, proiezioni=proiezioni)
 
-
-# film = conn.execute("select * from film where idfilm =" + idFilm).fetchone()
-# proiezioni = conn.execute("select * from proiezione where proiezione.idfilm =" + idFilm)
-
 # render alla pagina di prenotazione dei biglietti
 @app.route('/prenotazione/<idProiezione>', methods=['GET'])
 @login_required
@@ -229,21 +205,6 @@ def prenotazione(idProiezione):
     return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezione, riga=riga,
                            colonna=colonna)  # title=movie['title'], date=movie['date'], time=movie['time'] )
     #         default=alchemyencoder          posti=righe, column=colonne,
-
-
-# proiezione = conn.execute("select * from proiezione where idproiezione="+idProiezione).fetchone()
-# film = conn.execute("select * from film where idfilm=" + str(proiezione.idfilm)).fetchone()
-# sala = conn.execute("select * from sala where idsala=" + str(proiezione.idsala)).fetchone()
-
-# biglietti = conn.execute("select riga,colonna from biglietti where idproiezione="+idProiezione).fetchone()
-# righe = conn.execute(
-#    "select sala.numrighe FROM sala INNER JOIN proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
-#    " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
-#        'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
-# colonne = conn.execute(
-#   "select sala.numcolonne FROM sala inner join proiezione INNER JOIN film on film.idfilm=proiezione.idfilm on proiezione.idsala=sala.idsala" +
-#   " WHERE film.titolo = '" + movie['title'] + "' AND proiezione.data = '" + movie[
-#        'date'] + "' AND proiezione.orario ='" + movie['time'] + "'")
 
 @app.route('/acquista/<idProiezione>', methods=['POST'])
 @login_required
@@ -289,8 +250,7 @@ def login():
             print("Welcome admin?")
             selectAdminQuery = select([admin.c.identificativo, admin.c.password]). \
                 where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
-            print(id_admin[0] + "    " + form_passw)
-            adminCredentials = conn.execute(selectAdminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
+            adminCredentials = conn.execute(selectAdminQuery, {'adminId':id_admin[0], 'adminPassword':form_passw})
             if adminCredentials is None:
                 return home_page()
             else:
