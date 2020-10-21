@@ -137,8 +137,8 @@ class User(UserMixin):
 
     def is_anonymous(self):
         if self.is_authenticated() == True:
-            return True
-        return False
+            return False
+        return True
 
     def get_id(self):
         return self.id
@@ -187,14 +187,14 @@ def alchemyencoder(obj):
 # pagina principale per utenti loggati e non
 @app.route('/', methods=['GET'])
 def home_page():
-    queryFilms = select([film.c.idfilm])
+    queryFilms = select([film.c.titolo])
     films = conn.execute(queryFilms)
     return render_template('index.html', movies=films)
 
 
 @app.route('/film/<idFilm>', methods=['GET'])
 @login_required
-def film(idFilm):
+def base_film(idFilm):
     # query a db per recuperare entità film con id idFilm
     queryFilm = select(film).where(film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, idFilmRecuperato=idFilm)
