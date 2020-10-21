@@ -13,14 +13,10 @@
     <div class="col">
 
         <h1>Benvenuto <% if user %>
-        <% user %>
-        <% endif %>,
-        admin supremo del cinema</h1>
+            <% user %>
+            <% endif %>,
+            admin supremo del cinema</h1>
     </div>
-    <div class="col-2">
-        <a href="admin_page2.html">VISUALIZZA BIGLIETTI</a>
-    </div>
-    <div class="col-1"></div>
 </div>
 <br><br>
 <div class="row">
@@ -32,13 +28,16 @@
             <input type="text" class="form-control" id="newTitle" name="chsnFilm"><br><br>
 
             <label>Genere/i:</label>
-            <input type="text" class="form-control" id="newGenre" name="newGenre" placeholder="Commedia, Fantasy..."><br><br>
+            <input type="text" class="form-control" id="newGenre" name="newGenre"
+                   placeholder="Commedia, Fantasy..."><br><br>
 
             <label>Registi:</label>
-            <input type="file" class="form-control" id="newMovDir" name="newMovDir" placeholder="Nome Cognome, Nome Cognome..."><br><br>
+            <input type="file" class="form-control" id="newMovDir" name="newMovDir"
+                   placeholder="Nome Cognome, Nome Cognome..."><br><br>
 
             <label>Attori:</label>
-            <input type="text" class="form-control" id="newActors" name="newActors" placeholder="Nome Cognome, Nome Cognome..."><br><br>
+            <input type="text" class="form-control" id="newActors" name="newActors"
+                   placeholder="Nome Cognome, Nome Cognome..."><br><br>
 
             <label>Tipologia:</label>
             <select name="is3d" id="is3d">
@@ -51,11 +50,12 @@
             <input type="file" class="form-control" id="newImage" name="newImage"><br><br>
 
             <label>Trama:</label> <br>
-            <textarea id="newPlot"  name="newPlot" placeholder="Trama:"></textarea>
+            <textarea id="newPlot" name="newPlot" placeholder="Trama:"></textarea>
             <br><br>
 
             <label>Prima data nel cinema:</label>
-            <input type="text" id="newStartData" class="form-control" name="newStartData" placeholder=" gg/mm/aa"><br><br>
+            <input type="text" id="newStartData" class="form-control" name="newStartData"
+                   placeholder=" gg/mm/aa"><br><br>
 
             <label>Ultima data nel cinema:</label>
             <input type="text" id="newLastData" class="form-control" name="newLastData" placeholder=" gg/mm/aa"><br><br>
@@ -66,7 +66,7 @@
             <label>Paese d'origine:</label>
             <input type="text" id="newCountry" class="form-control" name="newCountry"><br><br>
 
-            <label>Anno  pubblicazione:</label>
+            <label>Anno pubblicazione:</label>
             <input type="text" id="newYearPubb" class="form-control" name="newYearPubb"><br><br>
 
             <label>Età minima:</label>

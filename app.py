@@ -22,8 +22,8 @@ app = Flask(__name__)
 #app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-# engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -284,14 +284,14 @@ def login():
         id_admin = form_email.split('@')
         if id_admin[0].isdecimal():
             print("Welcome admin?")  # ricky non capisco sta query se è giusta controlla
-            admin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
+            selectAdmin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
             adminQuery = select([admin.c.identificativo, admin.c.password]).\
                 where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
             adminCredentials = conn.execute(adminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
             if adminCredentials is None:
                 return home_page()
             else:
-                return render_template('admin_page.html')
+                return render_template('admin_logged.html', adminLogged=id_admin)
 
         utente_log = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
 
