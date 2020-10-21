@@ -286,9 +286,10 @@ def login():
         form_passw = str(request.form['passwordLogin'])
         id_admin = form_email.split('@')
         if id_admin[0].isdecimal():
-            print("Welcome admin?")  # ricky non capisco sta query se è giusta controlla
+            print("Welcome admin?")
             selectAdminQuery = select([admin.c.identificativo, admin.c.password]). \
                 where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
+            print(id_admin[0] + "    " + form_passw)
             adminCredentials = conn.execute(selectAdminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
             if adminCredentials is None:
                 return home_page()
