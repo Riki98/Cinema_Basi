@@ -130,15 +130,15 @@ class User(UserMixin):
         self.pwd = pwd
 
     def is_authenticated(self):
-        return True
+        return self.authenticated
 
     def is_active(self):
-                return True
+        return self.active
 
     def is_anonymous(self):
-        if self.is_authenticated() == true:
-            return true
-        return false
+        if self.is_authenticated() == True:
+            return False
+        return True
 
     def get_id(self):
         return self.id
@@ -288,14 +288,13 @@ def login():
         if id_admin[0].isdecimal():
             print("Welcome admin?")
             selectAdminQuery = select([admin.c.identificativo, admin.c.password]). \
-                where(
-                and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
-            adminCredentials = conn.execute(selectAdminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[
-                0]
+                where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
+            print(id_admin[0] + "    " + form_passw)
+            adminCredentials = conn.execute(selectAdminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
             if adminCredentials is None:
                 return home_page()
             else:
-                return render_template('admin_logged.html', adminLogged=id_admin)
+                return render_template('admin_logged.html', adminLogged=id_admin[0])
 
         utente_log = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
 
