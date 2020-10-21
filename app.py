@@ -1,13 +1,15 @@
 # HTML import
+from operator import and_
+
 import flask
 from flask import Flask, render_template, request, json, redirect, url_for
 
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
-from sqlalchemy import select, insert
+#from flask_admin import Admin
+#from flask_admin.contrib.sqla import ModelView
+from sqlalchemy import select, insert, bindparam, Boolean, Time, Date
 from sqlalchemy import Sequence
 from sqlalchemy import create_engine
 from sqlalchemy import func
@@ -128,18 +130,15 @@ class User(UserMixin):
         self.pwd = pwd
 
     def is_authenticated(self):
-        self.authenticated
+        return self.authenticated
 
     def is_active(self):
-        for identifier in active_users:
-            if self.get_id() == identifier:
-                return True
-        return False
+        return self.active
 
     def is_anonymous(self):
-        if self.is_authenticated() == true:
-            return true
-        return false
+        if self.is_authenticated() == True:
+            return True
+        return False
 
     def get_id(self):
         return self.id
@@ -288,16 +287,13 @@ def login():
         id_admin = form_email.split('@')
         if id_admin[0].isdecimal():
             print("Welcome admin?")  # ricky non capisco sta query se è giusta controlla
-            selectAdmin = conn.execute(select([admin.c.identificativo]).where(admin.c.email == form_email)).fetchone()
             selectAdminQuery = select([admin.c.identificativo, admin.c.password]). \
-                where(
-                and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
-            adminCredentials = conn.execute(selectAdminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[
-                0]
+                where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
+            adminCredentials = conn.execute(selectAdminQuery, adminId=id_admin[0], adminPassword=form_passw).fetchone()[0]
             if adminCredentials is None:
                 return home_page()
             else:
-                return render_template('admin_logged.html', adminLogged=id_admin)
+                return render_template('admin_logged.html', adminLogged=id_admin[0])
 
         utente_log = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
 
@@ -320,7 +316,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     id = conn.execute(select([func.max(utente.c.idutente)]))
-    myid = id.fetchone()[0]
+    myid = id.fetchone()[0] + 1
 
     mailreg = request.form["emailReg"]
     passwordreg = request.form["passReg"]
@@ -337,7 +333,7 @@ def register():
 
     conn.execute(insreg, [
         {
-            'email': mailreg, 'idutente': (myid + 1),
+            'email': mailreg, 'idutente': myid,
             'password': passwordreg, 'nome': namereg,
             'cognome': surnamereg, 'datanascita': birthreg,
             'sesso': sexreg, 'numfigli': sonsreg,
@@ -345,10 +341,10 @@ def register():
         }
 
     ])
-    user.authenticated = True
-    login_user(User(myid, email, passwordreg))  # appoggio a flask_login
-    active_users.append(real_id)
-    return home_logged()
+    User.authenticated = True
+    login_user(User(myid, mailreg, passwordreg))  # appoggio a flask_login
+    active_users.append(myid)
+    return home_page()
 
 
 @app.route('/logout', methods=['POST'])
