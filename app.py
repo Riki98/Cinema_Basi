@@ -163,9 +163,6 @@ def alchemyencoder(obj):
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
 
-#selectAdminQuery = select([admin.c.identificativo, admin.c.password]). \
-#                where(and_(admin.c.identificativo == bindparam('adminId'), admin.c.password == bindparam('adminPassword')))
-#            adminCredentials = conn.execute(selectAdminQuery, {'adminId':id_admin[0], 'adminPassword':form_passw})
 
 # render alla pagina principale per utenti non loggati
 @app.route('/', methods=['GET'])
@@ -198,7 +195,7 @@ def base_film(idFilm):
 @login_required
 def prenotazione(idProiezione):
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam("idProiezioniRichieste"))
-    proiezioni = conn.execute(queryProiezione, idProiezioniRichieste=idProiezione).fetchone()
+    proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste':idProiezione}).fetchone()
 
     print(proiezioni.idfilm)
 
@@ -431,7 +428,7 @@ def insert_film():
 
     print("Immagine salvata")
 
-    return render_template("admin_page.html")
+    return render_template("admin_logged.html")
 
 
 @app.route('/admin_page')
