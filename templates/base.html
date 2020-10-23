@@ -5,6 +5,18 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.5.0.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/prenota.js') }}"></script>
     <title>Cinema_Basi</title>
 </head>
 
@@ -17,8 +29,6 @@
             <div class="col"></div>
 
 
-
-
             {% block pagebody %}
 
             {% endblock %}
@@ -26,33 +36,33 @@
 
             <!-- Elenco FILM disponibili -->
 
-   <div class="works" id="work">
-    <div class="container">
-        <!-- heading -->
-        <h2 color="black">In sala...</h2>
-        <!-- paragraph -->
-        <p>Clicca sul film per saperne di più.</p>
-        <div class="row">
-
-            {% for film in movies %}
-
-            <div class="col-md-3">
-                <!-- work item -->
-                <div class="work-item">
-                    <!-- work details image -->
-                    <img class="img-responsive" src="/static/img/Locandine/{{ film.titolo.strip() }}.png"/>
+            <div class="works" id="work">
+                <div class="container">
                     <!-- heading -->
-                    <h3> <a href="/film/{{film.idfilm}}">{{ film.titolo }}</a></h3>
-                    <!-- brand org -->
-                    <span class="org">{{ film.genere }}</span>
-                    <span class="org">{{ film.is3d }}</span>
+                    <h2 color="black">In sala...</h2>
+                    <!-- paragraph -->
+                    <p>Clicca sul film per saperne di più.</p>
+                    <div class="row">
+
+                        {% for film in movies %}
+
+                        <div class="col-md-3">
+                            <!-- work item -->
+                            <div class="work-item">
+                                <!-- work details image -->
+                                <img class="img-responsive" src="/static/img/Locandine/{{ film.titolo.strip() }}.png"/>
+                                <!-- heading -->
+                                <h3><a href="/film/{{film.idfilm}}">{{ film.titolo }}</a></h3>
+                                <!-- brand org -->
+                                <span class="org">{{ film.genere }}</span>
+                                <span class="org">{{ film.is3d }}</span>
+                            </div>
+                        </div>
+
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
-
-            {% endfor %}
-        </div>
-    </div>
-</div>
             <br><br><br><br>
             <footer class="site-footer" role="contentinfo">
                 <div class="card-footer mt-auto row">
@@ -73,17 +83,5 @@
             </footer>
 
 
-            <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-                    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-                    crossorigin="anonymous"></script>
-            <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-                    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-                    crossorigin="anonymous"></script>
-            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-                    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-                    crossorigin="anonymous"></script>
-            <script src="{{ url_for('static', filename='js/jquery-3.5.0.js') }}" ></script>
-            <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-            <script src="{{ url_for('static', filename='js/prenota.js') }}"></script>
-        </body>
+</body>
 </html>
