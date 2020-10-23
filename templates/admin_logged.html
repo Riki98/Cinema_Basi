@@ -6,10 +6,15 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
-    <script src="{{ url_for('static', filename='js/htmlClass.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+    <script>
+        function show(shown, hidden) {
+            document.getElementById(shown).style.display = 'block';
+            document.getElementById(hidden).style.display = 'none';
+            return false;
+        }
+    </script>
 
-    <title>Admin</title>
+    <title>{{adminLogged}}</title>
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -27,7 +32,7 @@
 
 </div>
 
-{{current_user}}
+
 <div id="Page1" class="col">
     <br><br><br>
     <div class="row">
@@ -47,26 +52,24 @@
                     <th scope="col">Paese</th>
                     <th scope="col">Anno</th>
                     <th scope="col"><14</th>
-                    <th scope="col">azione</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for row in arrayFilms %}
+                {{ for row in arrayFilms }}
                 <tr>
-                    <th scope="row">{{row.idfilm}}</th>
-                    <td>{{row.titolo}}</td>
-                    <td>{{row.genere}}</td>
-                    <td> <p>{{row.trama}}</p></td>
-                    <td>{{row.is3d}}</td>
-                    <td>{{row.datainizio}}</td>
-                    <td>{{row.datafine}}</td>
-                    <td>{{row.durata}}</td>
-                    <td>{{row.paese}}</td>
-                    <td>{{row.anno}}</td>
-                    <td>{{row.vm}}</td>
-                    <td><a href="/film/delete/{{row.idfilm}}">Elimina</a></td>
+                    <th scope="row">1</th>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
                 </tr>
-                {% endfor %}
+                {{ endfor }}
                 </tbody>
             </table>
         </div>
@@ -74,11 +77,12 @@
     </div>
     <div>
         <button> Aggiungi film</button>
+        <button> Elimina film</button>
     </div>
 </div>
 
 
-<div id="Page2" class="col">
+<div id="Page2" style="display:none" class="col">
     <br><br><br>
     <h1>Ha funzionato</h1>
     <br><br><br>
