@@ -258,7 +258,9 @@ def login():
             if adminCredentials is None:
                 return home_page()
             else:
-                return render_template('admin_logged.html', adminLogged=id_admin[0])
+                takenFilms = select([film])
+                queryTakenFilms = conn.execute(takenFilms).fetchall()
+                return render_template('admin_logged.html', adminLogged=id_admin[0], arrayFilms=queryTakenFilms)
 
         utente_log = conn.execute(select([utente]).where(utente.c.email == form_email)).fetchone()
 

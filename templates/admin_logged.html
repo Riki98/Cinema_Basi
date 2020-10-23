@@ -22,13 +22,13 @@
 </nav>
 
 
-<div class="btn-group btn-group-toggle"  data-toggle="buttons">
-  <label class="btn btn-secondary active" onclick="return show('Page1','Page2');">
-    <input type="radio" name="options" id="option1" checked> Film
-  </label>
-  <label class="btn btn-secondary" onclick="return show('Page2','Page1');">
-    <input type="radio" name="options" id="option2"> Stats
-  </label>
+<div class="btn-group btn-group-toggle" data-toggle="buttons">
+    <label class="btn btn-secondary active" onclick="return show('Page1','Page2');">
+        <input type="radio" name="options" id="option1" checked> Film
+    </label>
+    <label class="btn btn-secondary" onclick="return show('Page2','Page1');">
+        <input type="radio" name="options" id="option2"> Stats
+    </label>
 
 </div>
 
@@ -55,6 +55,7 @@
                 </tr>
                 </thead>
                 <tbody>
+                {{ for row in arrayFilms }}
                 <tr>
                     <th scope="row">1</th>
                     <td>Mark</td>
@@ -68,40 +69,15 @@
                     <td>Otto</td>
                     <td>@mdo</td>
                 </tr>
-                <tr>
-                    <th scope="row">2</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                </tr>
-                <tr>
-                    <th scope="row">3</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                </tr>
+                {{ endfor }}
                 </tbody>
             </table>
         </div>
         <div class="col-1"></div>
     </div>
     <div>
-        <button> Aggiungi film </button>
-        <button> Elimina film </button>
+        <button> Aggiungi film</button>
+        <button> Elimina film</button>
     </div>
 </div>
 
@@ -113,6 +89,18 @@
 </div>
 
 <br><br>
+
+
+<div id="app">
+  <v-app id="inspire">
+    <v-data-table
+      :headers="headers"
+      :items="desserts"
+      :items-per-page="5"
+      class="elevation-1"
+    ></v-data-table>
+  </v-app>
+</div>
 
 
 <footer class="site-footer" role="contentinfo">
