@@ -26,18 +26,13 @@
 
     <div class="navbar-collapse">
         <div class="row">
-            <div class="col">
-                {% if current_user.is_authenticated %}
-                <p style="color: azure">Hi {{ current_user.email }}!</p>
-                {% endif %}
-            </div>
+            <div class="col"></div>
 
 
             {% block pagebody %}
 
             {% endblock %}
 
-            {% include 'films.html' %}
 
             <!-- Elenco FILM disponibili -->
 
@@ -68,7 +63,6 @@
                     </div>
                 </div>
             </div>
-
             <br><br><br><br>
             <footer class="site-footer" role="contentinfo">
                 <div class="card-footer mt-auto row">
