@@ -13,20 +13,23 @@
 <p>{{ movie.trama }}</p>
 <p>{{ movie.genere }}</p>
 <p>{{ movie.is3d }}</p>
+{% if movie.is3d %}
+<b>3D</b>
+{% endif %}
 
 
 <h2>Orari disponibili</h2>
 <table class="table-bordered table-dark">
-    {% for proiezione in proiezioni %}
+    {% for spettacolo in proiezioni %}
     <tr>
         <td>
-               {{proiezione.data}}
+               {{spettacolo.data}}
         </td>
         <td>
-               {{proiezione.orario}}
+               {{spettacolo.orario}}
         </td>
         <td>
-            <a href="/prenotazione/{{proiezione.idproiezione}}">PRENTOTA ORA</a>
+            <a href="/prenotazione/{{spettacolo.idproiezione}}">PRENTOTA ORA</a>
         </td>
 
     </tr>
