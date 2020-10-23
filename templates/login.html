@@ -3,36 +3,74 @@
 {% block pagebody %}
 
 <div class="col-4">
-                <div class="row d-flex justify-content-around">
-                    <div class="dropdown">
-                        <a id="dropdown-title" class="btn btn-secondary dropdown-toggle" href="#" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="titolo">
-                            Film
-                        </a>
+    <div class="row d-flex justify-content-around">
+        <div class="dropdown">
+            <a id="dropdown-title" class="btn btn-secondary dropdown-toggle" href="#" role="button"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" name="titolo">
+                Film
+            </a>
 
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn btn-warning align-right" id="prenotazione">Prenota</button>
-                </div>
-            </div>
-            <div class="col-2"></div>
-            <div class="col-2">
-                <div class="row d-flex justify-content-around">
-                    <!-- Button trigger modal LOG OUT -->
-                    <form action="/logout" class="form-singin" method="POST">
-                        <button type="submit" class="btn btn-primary">
-                            Log Out
-                        </button>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
+
+    <button type="button" class="btn btn-warning align-right" id="prenotazione">Prenota</button>
+</div>
+</div>
+<div class="col-2"></div>
+<div class="col-2">
+    <div class="row d-flex justify-content-around">
+        <!-- Button trigger modal LOG OUT -->
+        <form action="/logout" class="form-singin" method="POST">
+            <button type="submit" class="btn btn-primary">
+                Log Out
+            </button>
+        </form>
+    </div>
+</div>
+</div>
+</div>
 </nav>
 
+<form action="/login" class="form-singin" method="POST">
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col">
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputLoginMail">Email</span>
 
+                </div>
+                <input name="mailLogin" type="text" class="form-control"
+                       aria-label="Sizing example input"
+                       aria-describedby="inputGroup-sizing-sm">
+            </div>
+        </div>
+        <div class="col-2"></div>
+    </div>
 
+    <!-- Password -->
+
+    <div class="row">
+        <div class="col-1"></div>
+        <div class="col">
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputLoginPsw">  Password</span>
+                </div>
+                <input name="passwordLogin" type="text" class="form-control"
+                       aria-label="Sizing example input"
+                       aria-describedby="inputGroup-sizing-sm">
+            </div>
+
+        </div>
+        <div class="col-2"></div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Sign in</button>
+    </div>
+</form>
 
 
 {% endblock %}
