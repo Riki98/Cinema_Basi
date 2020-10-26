@@ -115,7 +115,7 @@ active_users = []
 
 
 class User(UserMixin):
-    def __init__(self,id, email, role):
+    def __init__(self, id, email, role):
         self.id = id
         self.email = email
         self.role = role
@@ -136,6 +136,9 @@ class User(UserMixin):
 
     def get_role(self):
         return self.role
+
+    def get_email(self):
+        return self.email
 
     def __repr__(self):
         return f'<User: {self.email}>'
@@ -304,7 +307,7 @@ def admin_page():
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
 
-    return render_template('admin_logged.html', arrayFilms=queryTakenFilms)
+    return render_template('admin_logged.html', arrayFilms=queryTakenFilms, adminLogged=current_user.get_email())
 
 
 
