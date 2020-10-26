@@ -26,8 +26,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-#engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -66,7 +66,8 @@ persona = Table('persona', metadata,
 
 sala = Table('sala', metadata,
              Column('idsala', Integer, primary_key=True),
-             Column('numposti', Integer),
+             Column('numfila', Integer),
+             Column('numcolonne', Integer),
              Column('is3d', Boolean)
              )
 
@@ -145,6 +146,7 @@ class User(UserMixin):
 def load_user(user_id):
     conn = engine.connect()
     user = conn.execute(select([utente]).where(utente.c.idutente == user_id)).fetchone()
+    conn.close()
     if user is None:
         return None
     else:
@@ -186,16 +188,12 @@ def base_film(idFilm):
     conn = engine.connect()
     # query a db per recuperare entità film con id idFilm
     queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(film.c.idfilm == bindparam("idFilmRecuperato"))
-    filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm})
-    for films in filmPage:
-        print(films.titolo)
-        print(films.is3d)
+    filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm}).fetchone()
+
     queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario]).where(proiezione.c.idfilm == bindparam("idProiezioneRecuperato"))
     proiezioni = conn.execute(queryProiezioni, {'idProiezioneRecuperato': idFilm})
 
     conn.close()
-    for a in filmPage:
-        print(a.titolo, a.genere, a.is3d)
     return render_template('base_film.html', movie=filmPage, spettacoli=proiezioni)
 
 
@@ -218,13 +216,11 @@ def prenotazione(idProiezione):
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam('idProiezioniRichieste'))
     proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste':idProiezione}).fetchone()
 
-    print(queryProiezione)
-
     queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam('idFilmProiezione'))
-    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione':str(proiezione.c.idfilm)})
+    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione':(proiezioni.idfilm)}).fetchone()
 
     querySeats = select([sala]).where(sala.c.idsala == bindparam('selezionePosti'))
-    seats = conn.execute(querySeats, {'selezionePosti':str(proiezione.c.idsala)})
+    seats = conn.execute(querySeats, {'selezionePosti':(proiezioni.idsala)}).fetchone()
 
 
     riga = seats.numfila
