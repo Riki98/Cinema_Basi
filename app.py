@@ -26,8 +26,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+#engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -143,6 +143,7 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
+    conn = engine.connect()
     user = conn.execute(select([utente]).where(utente.c.idutente == user_id)).fetchone()
     if user is None:
         return None
