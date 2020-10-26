@@ -205,16 +205,7 @@ def base_film(idFilm):
 @login_required
 def prenotazione(idProiezione):
     conn = engine.connect()
-    #queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam("idProiezioniRichieste"))
-    #proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste': idProiezione}).fetchone()
 
-    #print(proiezioni.idfilm)
-
-    #queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam("idFilmProiezione"))
-    #filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione': str(proiezione.c.idfilm)})
-
-    #querySeats = select([sala]).where(sala.c.idsala == bindparam("selezionePosti"))
-    #seats = conn.execute(querySeats, {'selezionePosti': str(proiezione.c.idsala)})
 
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam('idProiezioniRichieste'))
     proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste':idProiezione}).fetchone()
@@ -237,14 +228,9 @@ def prenotazione(idProiezione):
 @app.route('/acquista/<idProiezione>', methods=['POST'])
 @login_required
 def do_prenotazione(idProiezione):
-    # queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]). \
-    #    where(persona.c.nomecognome == bindparam('nomeRegista'))
-    # dbDirector = conn.execute(queryDbDirector, {'nomeRegista': director})  # eseguo la ricerca
     conn = engine.connect()
     pos = (request.form)
     print(pos)
-
-
     queryidSala = select([sala.c.idsala]). \
         where(sala.c.idproiezione == idProiezione)
     idSala = conn.execute(queryidSala)
@@ -356,14 +342,18 @@ def logout():
 @app.route('/film/delete/<idFilm>', methods=['GET'])
 @login_required
 def cancellazione(idFilm):
-    # cancello il film idFilm
+    # xe tuto sbaiaaaaaaaaaaaaaa
+    conn = engine.connect()
     print(idFilm)
-    print("idFilm")
-    return redirect("/login")
+    queryDelete = film.delete().where(film.c.idfilm == bindparam("filmTaken"))
+    conn.execute(queryDelete, {'filmTaken': idFilm})
+    conn.close()
+    return redirect("/admin")
 
 
 @app.route('/create_page_film', methods=['POST'])
 def insert_film():
+
     newTitle = request.form["newTitle"]
     newGenre = request.form["newGenre"]
     is3d = request.form["is3d"]
