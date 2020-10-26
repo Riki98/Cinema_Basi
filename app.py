@@ -66,7 +66,8 @@ persona = Table('persona', metadata,
 
 sala = Table('sala', metadata,
              Column('idsala', Integer, primary_key=True),
-             Column('numposti', Integer),
+             Column('numfila', Integer),
+             Column('numcolonne', Integer),
              Column('is3d', Boolean)
              )
 
@@ -186,7 +187,7 @@ def base_film(idFilm):
     conn = engine.connect()
     # query a db per recuperare entità film con id idFilm
     queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(film.c.idfilm == bindparam("idFilmRecuperato"))
-    filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm})
+    filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm}).fetchall()
     for films in filmPage:
         print(films.titolo)
         print(films.is3d)
@@ -221,17 +222,16 @@ def prenotazione(idProiezione):
     print(queryProiezione)
 
     queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam('idFilmProiezione'))
-    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione':str(proiezione.c.idfilm)})
+    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione': proiezioni.idfilm}).fetchone()
 
     querySeats = select([sala]).where(sala.c.idsala == bindparam('selezionePosti'))
-    seats = conn.execute(querySeats, {'selezionePosti':str(proiezione.c.idsala)})
+    seats = conn.execute(querySeats, {'selezionePosti': proiezioni.idsala}).fetchone()
 
 
     riga = seats.numfila
     colonna = seats.numcolonne
     conn.close()
     return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezione, riga=riga, colonna=colonna)
-    # default=alchemyencoder
 
 
 @app.route('/acquista/<idProiezione>', methods=['POST'])
