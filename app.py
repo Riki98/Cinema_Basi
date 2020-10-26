@@ -26,8 +26,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -70,7 +70,7 @@ sala = Table('sala', metadata,
              Column('is3d', Boolean)
              )
 
-proiezione = Table('proiezioni', metadata,
+proiezione = Table('proiezione', metadata,
                    Column('orario', Time),
                    Column('idsala', Integer),
                    Column('idfilm', Integer),
@@ -103,9 +103,6 @@ registafilm = Table('registafilm', metadata,
                     )
 
 metadata.create_all(engine)
-
-# apertura connessione al DB
-conn = engine.connect()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -171,45 +168,41 @@ def alchemyencoder(obj):
 # render alla pagina principale
 @app.route('/', methods=['GET'])
 def home_page():
+    # apertura connessione al DB
+    conn = engine.connect()
     queryFilms = select([film])
     films = conn.execute(queryFilms)
+    conn.close()
     if current_user.is_authenticated:
-        return render_template('login.html', movies=films)
+        return render_template('login.html', movies=films) # stessa pagina rimossa dei btn log in e register
     else:
         return render_template('index.html', movies=films)
-
-# render alla pagina principale per utenti loggati
-@app.route('/', methods=['GET'])
-def log_home_page():
-    queryFilms = select([film])
-    films = conn.execute(queryFilms)
-    return render_template('login.html', movies=films)
-
 
 
 @app.route('/film/<idFilm>', methods=['GET'])
 @login_required
 def base_film(idFilm):
+    conn = engine.connect()
     # query a db per recuperare entità film con id idFilm
-    queryFilm = select(film).where(film.c.idfilm == bindparam("idFilmRecuperato"))
+    queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm})
-
-    queryProiezioni = select(proiezione).where(film.c.idfilm == bindparam("idProiezioneRecuperato"))
+    for films in filmPage:
+        print(films.titolo)
+        print(films.is3d)
+    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario]).where(proiezione.c.idfilm == bindparam("idProiezioneRecuperato"))
     proiezioni = conn.execute(queryProiezioni, {'idProiezioneRecuperato': idFilm})
 
-
-    queryProiezioni = select([proiezione]).where(proiezione.c.idfilm == bindparam('idFilm'))
-    spettacoli = conn.execute(queryProiezioni, {'idFilm':idFilm})
+    conn.close()
     for a in filmPage:
         print(a.titolo, a.genere, a.is3d)
-    return render_template('base_film.html', movie=filmPage, proiezione=spettacoli)
+    return render_template('base_film.html', movie=filmPage, spettacoli=proiezioni)
 
 
 # render alla pagina di prenotazione dei biglietti
 @app.route('/prenotazione/<idProiezione>', methods=['GET'])
 @login_required
 def prenotazione(idProiezione):
-
+    conn = engine.connect()
     #queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam("idProiezioniRichieste"))
     #proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste': idProiezione}).fetchone()
 
@@ -224,7 +217,7 @@ def prenotazione(idProiezione):
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam('idProiezioniRichieste'))
     proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste':idProiezione}).fetchone()
 
-    print(proiezioni.idfilm)
+    print(queryProiezione)
 
     queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam('idFilmProiezione'))
     filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione':str(proiezione.c.idfilm)})
@@ -235,7 +228,7 @@ def prenotazione(idProiezione):
 
     riga = seats.numfila
     colonna = seats.numcolonne
-
+    conn.close()
     return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezione, riga=riga, colonna=colonna)
     # default=alchemyencoder
 
@@ -246,7 +239,7 @@ def do_prenotazione(idProiezione):
     # queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]). \
     #    where(persona.c.nomecognome == bindparam('nomeRegista'))
     # dbDirector = conn.execute(queryDbDirector, {'nomeRegista': director})  # eseguo la ricerca
-
+    conn = engine.connect()
     pos = (request.form)
     print(pos)
 
@@ -267,22 +260,23 @@ def do_prenotazione(idProiezione):
             'idutente': idUtente
         }
     ])
-    ticket = conn.execute()
     ##prepari dati a vista acquista
     # ritorni vista acquista
-
+    conn.close()
     return render_template('biglietto.html', ticket=ticket)
 
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    conn = engine.connect()
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
         queryControlUser = select([utente]).where(and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
         utente_log = conn.execute(queryControlUser, expectedEmail=form_email, expectedPAss=form_passw).fetchone()
         print(utente_log)
+        conn.close()
         if utente_log is None:
             return redirect("/")  # home_page()
         else:
@@ -300,12 +294,15 @@ def login():
 @app.route('/admin')
 @login_required
 def admin_page():
+
     if current_user.role == 0:
         return redirect("/")
     else:
         print(current_user)
+        conn = engine.connect()
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
+        conn.close()
 
     return render_template('admin_logged.html', arrayFilms=queryTakenFilms, adminLogged=current_user.get_email())
 
@@ -314,6 +311,7 @@ def admin_page():
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    conn = engine.connect()
     id = conn.execute(select([func.max(utente.c.idutente)]))
     myid = id.fetchone()[0] + 1
 
@@ -340,6 +338,7 @@ def register():
         }
 
     ])
+    conn.close()
     User.authenticated = True
     login_user(User( myid,mailreg,0))  # appoggio a flask_login
     active_users.append(myid)
@@ -374,6 +373,8 @@ def insert_film():
     newCountry = request.form["newCountry"]
     newYearPubb = request.form["newYearPubb"]
     newMinAge = request.form["newMinAge"]
+
+    conn = engine.connect()
 
     idFilmDB = select([func.max(film.c.idfilm)]) + 1
     # Controllo se il film sia già presente nel database
@@ -468,6 +469,8 @@ def insert_film():
     image.save('.\static\img\Locandine', image)
 
     print("Immagine salvata")
+
+    conn.close()
 
     return render_template("admin_logged.html")
 
