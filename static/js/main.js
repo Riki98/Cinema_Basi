@@ -4,10 +4,6 @@ var emptyDate = 1;
 var emptyTime = 1;
 var movieComplete = 0;
 
-$(document).ready(function(){
-   console.log("JavaScript & JQuery are working!")
-});
-
   $('.titlefilm').on('click', function(){
       movieComplete =0;
       var movie = { 'title' : $(this).html() }

@@ -6,9 +6,17 @@ let preonotati = [];
 let numPosti = 1;
 let numPostiPosizionati = 0;
 
+$(document).ready(function(){
+   console.log("JavaScript & JQuery are working!")
+});
 
-$('#numPosti').on('change',function(){
+$('#bottone').on('click', function (){
+    alert("DIOCANE");
+});
+
+$('#numPosti').on('click',function(){
     numPosti = $(this).val();
+    console.log("ciaoo");
     $('.sala td.prenotato').removeClass("prenotato").addClass("libero");
     preonotati = [];
     numPostiPosizionati= 0;
@@ -17,6 +25,7 @@ $('#numPosti').on('change',function(){
 
 $('.sala td.libero').on('click',function(){
     let posto = $(this);
+    console.log("ciaoo");
     if(numPostiPosizionati>=numPosti){
         alert("n max posti raggiunto");
         return;
@@ -28,8 +37,6 @@ $('.sala td.libero').on('click',function(){
 
     preonotati.push(posto[0].dataset);
     $("#posti").val(JSON.stringify(preonotati));
-
-
 });
 
 

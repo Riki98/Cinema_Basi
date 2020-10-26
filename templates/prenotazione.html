@@ -6,48 +6,10 @@
 <div class="col-4">
                 <div class="row d-flex justify-content-around">
                     <div class="dropdown">
-                        <a aria-expanded="false" aria-haspopup="true" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
-                           href="#" id="dropdown-title" name="titolo" role="button">
-                            Film
-                        </a>
-
-                        <div aria-labelledby="dropdownMenuLink" class="dropdown-menu">
-                        <form class="form" id="titleform">
-                            {% for titolo in movies %}
-                                <a class="dropdown-item titlefilm" href="#">{{ titolo[0] }}</a>
-                            {% endfor %}
-                        </form>
-                        </div>
-                    </div>
-                    <div class="dropdown">
-                        <a aria-expanded="false" aria-haspopup="true" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
-                           href="#" id="dropdown-day" role="button">
-                            Giorno
-                        </a>
-
-                        <div aria-labelledby="dropdownMenuLink" class="dropdown-menu" id="dayfilm">
-                            <!-- CODICE IN ARRIVO -->
-                        </div>
-                    </div>
-                    <div class="dropdown">
-                        <a aria-expanded="false" aria-haspopup="true" class="btn btn-secondary dropdown-toggle"
-                           data-toggle="dropdown" id="dropdown-time" role="button">
-                            Orario
-                        </a>
-
-                        <div aria-labelledby="dropdownMenuLink" class="dropdown-menu" id="timefilm">
-                            <!-- CODICE IN ARRIVO -->
-                        </div>
-                    </div>
-                    <button class="btn btn-warning align-right" id="prenotazione" type="button">Prenota</button>
-                </div>
-            </div>
-            <div class="col-2"></div>
-            <div class="col-2">
                 <div class="row d-flex justify-content-around">
                     <!-- Button trigger modal LOG OUT -->
                     <form action="/logout" class="form-singin" method="POST">
-                        <button class="btn btn-primary" type="submit">
+                        <button type="submit" class="btn btn-primary">
                             Log Out
                         </button>
                     </form>
@@ -57,7 +19,7 @@
     </div>
 </nav>
 
-
+    <button id="bottone">Clicca</button>
     <br><br><br>
     <div class="row">
     <div class="col-4"></div>
@@ -86,7 +48,7 @@
     <th></th>
     {% for y in range(0, colonna)%}
         <th style="background-color:gainsboro">
-    {{y}}
+            <b style="color: #2a2a2a">{{y}}</b>
         </th>
         {% endfor %}
 </tr>
@@ -94,12 +56,11 @@
 
     <tr>
         <th style="background-color:gainsboro">
-        {{x}}
+            <b style="color: #2a2a2a">{{x}}</b>
         </th>
         {% for y in range(0, colonna)%}
 
-
-        <td class=" {{ occupato if False else 'libero' }} " data-colonna="{{y}}" data-riga="{{x}}">
+        <td class="{{ 'occupato' if False else 'libero' }}" data-colonna="{{y}}" data-riga="{{x}}">
 
         </td>
 
@@ -115,9 +76,5 @@
 
     </div>
     </div>
-
-
-
-
 
 {% endblock %}

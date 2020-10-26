@@ -177,7 +177,11 @@ def home_page():
     films = conn.execute(queryFilms)
     conn.close()
     if current_user.is_authenticated:
-        return render_template('login.html', movies=films) # stessa pagina rimossa dei btn log in e register
+        if current_user.role == 1:
+            return redirect("/admin")
+        else:
+            return render_template('login.html', movies=films) # stessa pagina rimossa dei btn log in e register
+
     else:
         return render_template('index.html', movies=films)
 
@@ -222,11 +226,10 @@ def prenotazione(idProiezione):
     querySeats = select([sala]).where(sala.c.idsala == bindparam('selezionePosti'))
     seats = conn.execute(querySeats, {'selezionePosti':(proiezioni.idsala)}).fetchone()
 
-
     riga = seats.numfila
     colonna = seats.numcolonne
     conn.close()
-    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezione, riga=riga, colonna=colonna)
+    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezioni, riga=riga, colonna=colonna)
     # default=alchemyencoder
 
 
@@ -239,7 +242,6 @@ def do_prenotazione(idProiezione):
     conn = engine.connect()
     pos = (request.form)
     print(pos)
-
 
     queryidSala = select([sala.c.idsala]). \
         where(sala.c.idproiezione == idProiezione)
@@ -275,7 +277,7 @@ def login():
         print(utente_log)
         conn.close()
         if utente_log is None:
-            return redirect("/")  # home_page()
+            return redirect("/") # home_page()
         else:
             print(utente_log)
             login_user(User(utente_log['idutente'], utente_log['email'], utente_log['role']))  # appoggio a flask_login

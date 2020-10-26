@@ -32,6 +32,13 @@ h2 {
     color: black;
 }
 
+.limit-text {
+    width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .textwhilefont{
     font-family: "Lucida Console", Courier, monospace;
     color: whitesmoke;
@@ -53,7 +60,6 @@ img {
 }
 
 .sala td{
-
     background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;

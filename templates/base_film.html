@@ -1,13 +1,25 @@
 <!-- Creazione della pagina di base del film che dovrà essere copiata ogni volta che un admin
  crea un nuovo film e aggiornata con realativo titolo, immagine e descrizione del film, e cazzi vari, per poi essere risalvata nella cartella templates_film-->
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{{ movie.titolo }}</title>
-</head>
-<body>
+{% block pagebody %}
+
+
+<div class="col-4">
+                <div class="row d-flex justify-content-around">
+                    <div class="dropdown">
+                <div class="row d-flex justify-content-around">
+                    <!-- Button trigger modal LOG OUT -->
+                    <form action="/logout" class="form-singin" method="POST">
+                        <button type="submit" class="btn btn-primary">
+                            Log Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
 
 <h1>{{ movie.titolo }}</h1>
 <p>{{ movie.trama }}</p>
@@ -35,6 +47,4 @@
    {% endfor %}
 </table>
 
-
-</body>
-</html>
+{% endblock %}
