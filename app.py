@@ -10,7 +10,7 @@ from flask import Flask, render_template, request, json, redirect, url_for
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
-from sqlalchemy import select, insert, bindparam, Boolean, Time, Date, update, Table
+from sqlalchemy import select, insert, bindparam, Boolean, Time, Date, update, Table, desc, asc
 from sqlalchemy import Sequence
 from sqlalchemy import create_engine
 from sqlalchemy import func
@@ -20,6 +20,8 @@ from urllib.parse import urlparse, urljoin
 # TYPE import
 import datetime
 import decimal
+import string
+
 
 # Security import (https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database)
 from werkzeug.security import generate_password_hash
@@ -30,7 +32,7 @@ app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+#engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -171,6 +173,11 @@ def alchemyencoder(obj):
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
 
+def Convert(a):
+    it = iter(a)
+    res_dct = dict(zip(it, it))
+    return res_dct
+
 
 # render alla pagina principale
 @app.route('/', methods=['GET'])
@@ -181,7 +188,7 @@ def home_page():
     films = conn.execute(queryFilms)
     conn.close()
     if current_user.is_authenticated:
-        return render_template('login.html', movies=films)  # stessa pagina rimossa dei btn log in e register
+        return render_template('login.html', movies=films) # stessa pagina rimossa dei btn log in e register
     else:
         return render_template('index.html', movies=films)
 
@@ -191,12 +198,10 @@ def home_page():
 def base_film(idFilm):
     conn = engine.connect()
     # query a db per recuperare entità film con id idFilm
-    queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(
-        film.c.idfilm == bindparam("idFilmRecuperato"))
+    queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm}).fetchone()
 
-    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario]).where(
-        proiezione.c.idfilm == bindparam("idProiezioneRecuperato"))
+    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario]).where(proiezione.c.idfilm == bindparam("idProiezioneRecuperato"))
     proiezioni = conn.execute(queryProiezioni, {'idProiezioneRecuperato': idFilm})
 
     conn.close()
@@ -209,49 +214,71 @@ def base_film(idFilm):
 def prenotazione(idProiezione):
     conn = engine.connect()
 
+
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam('idProiezioniRichieste'))
-    proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste': idProiezione}).fetchone()
+    proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste':idProiezione}).fetchone()
 
     queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam('idFilmProiezione'))
-    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione': (proiezioni.idfilm)}).fetchone()
+    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione':(proiezioni.idfilm)}).fetchone()
 
-    querySeats = select([sala]).where(sala.c.idsala == bindparam('selezionePosti'))
-    seats = conn.execute(querySeats, {'selezionePosti': (proiezioni.idsala)}).fetchone()
+    querySeats = select([sala]).where(sala.c.idsala == bindparam('idSala'))
+    seats = conn.execute(querySeats, {'idSala':(proiezioni.idsala)}).fetchone()
 
     riga = seats.numfila
     colonna = seats.numcolonne
+
+    queryPosti = select([posto]).where(posto.c.idsala == bindparam('idSala'))
+    posti = conn.execute(queryPosti, {'idSala':(proiezioni.idsala)})
+
+    queryBiglietti = select([biglietto.c.idposto]).order_by(asc(biglietto.c.idposto)).where(biglietto.c.idproiezione == bindparam('idProiezione'))
+    biglietti = conn.execute(queryBiglietti, {'idProiezione':(idProiezione)})
+
+
+
     conn.close()
-    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezione, riga=riga, colonna=colonna)
+    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezioni, riga=riga, colonna=colonna, string=string, posto=posti, ticket=biglietti)
     # default=alchemyencoder
 
 
-@app.route('/acquista/<idProiezione>', methods=['POST'])
+@app.route('/acquista', methods=['POST'])
 @login_required
-def do_prenotazione(idProiezione):
+def acquista():
     conn = engine.connect()
-    pos = (request.form)
-    print(pos)
-    queryidSala = select([sala.c.idsala]). \
-        where(sala.c.idproiezione == idProiezione)
-    idSala = conn.execute(queryidSala)
-    queryIdPosto = select([posto.c.idposto]). \
-        where(posto.c.numero == pos[1] and (posto.c.fila == pos[0]) and (posto.c.idsala == idSala))
-    idPosto = conn.execute(queryIdPosto)
+    formPosti = (request.form['posti'])
+    # convert dictionary string to dictionary
+    posti = json.loads(formPosti)
+    idProiezione = (request.form['idproiezione'])
+    queryidSala = select([proiezione.c.idsala]). \
+        where(proiezione.c.idproiezione == idProiezione)
+    idSala = conn.execute(queryidSala).fetchone()
+
     idUtente = current_user.get_id()
 
-    # insert nuovi biglietti
-    insreg = biglietto.insert
-    conn.execute(insreg, [
-        {
-            'idproiezione': idProiezione, 'idposto': idPosto,
-            'idutente': idUtente
-        }
-    ])
-    ##prepari dati a vista acquista
-    # ritorni vista acquista
-    conn.close()
-    return render_template('biglietto.html', ticket=ticket)
+    for x in range(0, len(posti)-1):
+        numero = posti[x]['numero']
+        fila = posti[x]['fila']
+        queryIdPosto = select([posto.c.idposto]). \
+            where(posto.c.numero == numero and (posto.c.fila == fila) and (posto.c.idsala == idSala))
+        idPosto = conn.execute(queryIdPosto).fetchone()
 
+        # insert nuovi biglietti
+        insreg = biglietto.insert()
+
+        conn.execute(insreg, [
+            {
+                'idproiezione': idProiezione, 'idposto': idPosto[x],
+                'idutente': idUtente
+            }
+        ])
+
+    #prepari dati a vista acquista
+    queryOrarioProiezione = select([proiezione.c.orario]). \
+        where(proiezione.c.idproiezione == idProiezione)
+    orarioProiezione = conn.execute(queryOrarioProiezione).fetchone()
+    conn.close()
+    return render_template('biglietto.html', numSala=idSala, orario=orarioProiezione, posto=posti, len=len(posti))
+
+    idProiezione = (request.form['idproiezione'])
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
@@ -260,8 +287,7 @@ def login():
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
-        queryControlUser = select([utente]).where(
-            and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
+        queryControlUser = select([utente]).where(and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
         utente_log = conn.execute(queryControlUser, expectedEmail=form_email, expectedPAss=form_passw).fetchone()
         print(utente_log)
         conn.close()
