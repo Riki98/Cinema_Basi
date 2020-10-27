@@ -2,6 +2,8 @@
 from operator import and_
 
 import json
+
+from datetime import datetime
 import flask
 from flask import Flask, render_template, request, json, redirect, url_for
 
@@ -288,20 +290,69 @@ def admin_page():
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
 
-        query = conn.execute("select film.idfilm, film.titolo, dati.somma,dati.data from film INNER JOIN (select proiezione.idfilm, proiezione.data, sum(visite)as somma from proiezione LEFT JOIN (\
-        select idproiezione, count(*) as visite from biglietto group by idproiezione) as visitatori\
-        ON proiezione.idproiezione = visitatori.idproiezione group by proiezione.idfilm, proiezione.data) AS dati on film.idfilm = dati.idfilm").fetchall()
+        # query = conn.execute("select film.idfilm, film.titolo, dati.somma,dati.data from film INNER JOIN (select proiezione.idfilm, proiezione.data, sum(visite)as somma from proiezione LEFT JOIN (\
+        # select idproiezione, count(*) as visite from biglietto group by idproiezione) as visitatori\
+        # ON proiezione.idproiezione = visitatori.idproiezione group by proiezione.idfilm, proiezione.data) AS dati on film.idfilm = dati.idfilm order by film.idfilm,dati.data").fetchall()
+
+        query = conn.execute("select\
+        film.idfilm, film.titolo, date.data, (select sum(visite) as somma\
+        from proiezione left\
+        join(\
+            (select count( *) as visite, biglietto.idproiezione\
+        from biglietto group\
+        by\
+        idproiezione)) as visitatori\
+        on\
+        proiezione.idproiezione = visitatori.idproiezione\
+        where\
+        proiezione.idfilm = film.idfilm and proiezione.data = date.data)\
+        from film,\
+        (select distinct proiezione.data from proiezione)as date\
+        order\
+        by\
+        film.idfilm, date.data\
+        ")
         print(query)
 
-        # convert into JSON:
-        y = json.dumps({'result': query})
+        giorni = conn.execute("select distinct proiezione.data from proiezione order by proiezione.data").fetchall()
 
-        # the result is a JSON string:
-        print(y)
+        # convert into JSON:
+        class Dato:
+            def __init__(self, idfilm, titolo):
+                self.idfilm = idfilm
+                self.name = titolo
+                self.data = []
+
+            def add(self, n):
+                print("visite", n)
+                self.data.append(str(n))
+
+            def tostr(self):
+                return [str(num) for num in self.data]
+
+            def __str__(self):
+                return str(self.idfilm) + " " + self.name + " " + str([str(num) for num in self.data])
+
+        array = []
+        lastId = -1
+        for row in query:
+            if (row.idfilm > lastId):
+                d = Dato(row.idfilm, row.titolo)
+                d.add(row.somma)
+                array.append(d)
+                lastId = row.idfilm
+            else:
+                (array[len(array) - 1]).add(row.somma)
+
+        stats = json.dumps([dato.__dict__ for dato in array])
+        giorni = json.dumps([giorno[0].strftime('%m/%d/%Y') for giorno in giorni])
+
+
 
         conn.close()
 
-    return render_template('admin_logged.html', arrayFilms=queryTakenFilms, stats=query, adminLogged=current_user.get_email())
+        return render_template('admin_logged.html', arrayFilms=queryTakenFilms, stats=stats,
+                       adminLogged=current_user.get_email(), giorni=giorni)
 
 
 # REGISTER
