@@ -30,8 +30,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -87,7 +87,6 @@ proiezione = Table('proiezione', metadata,
 posto = Table('posto', metadata,
               Column('idposto', Integer, primary_key=True),
               Column('fila', String),
-              Column('prenotato', Boolean),
               Column('idsala', Integer),
               Column('numero', Integer)
               )
@@ -230,7 +229,7 @@ def prenotazione(idProiezione):
 
 
     conn.close()
-    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezioni, riga=riga, colonna=colonna, string=string, posto=posti, ticket=biglietti)
+    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezioni, riga=riga, colonna=colonna, string=string) # posto=posti, ticket=biglietti)
     # default=alchemyencoder
 
 
