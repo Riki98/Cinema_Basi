@@ -336,21 +336,39 @@ def logout():
     return redirect("/")
 
 
-@app.route('/film/delete/<idFilm>', methods=['GET'])
+@app.route('/film/unpublish/<idFilm>', methods=['GET'])
 @login_required
 def cancellazione(idFilm):
-    # xe tuto sbaiaaaaaaaaaaaaaa
     conn = engine.connect()
-    print(idFilm)
     queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 0})
     conn.execute(queryDelete, {'filmTaken': idFilm})
     conn.close()
     return redirect("/admin")
 
 
+@app.route('/film/publish/<idFilm>', methods=['GET'])
+@login_required
+def ripubblicazione(idFilm):
+    conn = engine.connect()
+    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 1})
+    conn.execute(queryDelete, {'filmTaken': idFilm})
+    conn.close()
+    return redirect("/admin")
+
+
+@app.route('/film/update/<idFilm>', methods=['GET'])
+@login_required
+def updateFilm(idFilm):
+    conn = engine.connect()
+    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 1})
+    conn.execute(queryDelete, {'filmTaken': idFilm})
+    print("Ciaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
+    conn.close()
+    return redirect("/admin")
+
+
 @app.route('/create_page_film', methods=['POST'])
 def insert_film():
-
     newTitle = request.form["newTitle"]
     newGenre = request.form["newGenre"]
     is3d = request.form["is3d"]
