@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, json, redirect, url_for
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
-from sqlalchemy import select, insert, bindparam, Boolean, Time, Date
+from sqlalchemy import select, insert, bindparam, Boolean, Time, Date, update, Table
 from sqlalchemy import Sequence
 from sqlalchemy import create_engine
 from sqlalchemy import func
@@ -26,8 +26,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+#engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -42,7 +42,8 @@ film = Table('film', metadata,
              Column('durata', Integer),
              Column('paese', String),
              Column('anno', Integer),
-             Column('vm', Integer)
+             Column('vm', Integer),
+             Column('shown', Boolean)
              )
 
 utente = Table('utente', metadata,
@@ -341,7 +342,7 @@ def cancellazione(idFilm):
     # xe tuto sbaiaaaaaaaaaaaaaa
     conn = engine.connect()
     print(idFilm)
-    queryDelete = film.delete().where(film.c.idfilm == bindparam("filmTaken"))
+    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 0})
     conn.execute(queryDelete, {'filmTaken': idFilm})
     conn.close()
     return redirect("/admin")
@@ -421,7 +422,7 @@ def insert_film():
 
     ############ AGGIORNAMENTO ACTOR MOVIE #############
     newActors = request.form["newActors"]
-    arrayNewActors = newMovDir.split(', ')
+    arrayNewActors = newActors.split(', ')
     for actor in arrayNewActors:
         queryDbActor = select([persona.c.idpersona, persona.c.nomecognome]). \
             where(persona.c.nomecognome == bindparam('nomeAttore'))
