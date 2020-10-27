@@ -18,7 +18,8 @@
 </div>
 </nav>
 
-
+    <br><br><br>
+    <div class="row">
 <br><br><br>
 <div class="row">
     <div class="col-4"></div>
@@ -35,6 +36,7 @@
         <p>Ora: {{ proiezione.orario }}</p>
 
 
+
         <select id="numPosti" name="numPosti">
             <option value="1">1</option>
             <option value="2">2</option>
@@ -42,30 +44,29 @@
             <option value="4">4</option>
         </select>
         <table class="sala table table-bordered table-dark">
-            <tr>
-                <th></th>
-                {% for y in range(0, colonna)%}
-                <th style="background-color:gainsboro">
-                    {{y}}
-                </th>
-                {% endfor %}
-            </tr>
-            {%for x in range(0, riga)%}
+<tr>
+    <th></th>
+    {% for y in range(1, colonna+1)%}
+        <th style="background-color:gainsboro">
+            <b style="color: #2a2a2a">{{y}}</b>
+        </th>
+        {% endfor %}
+</tr>
+    {%for x in range(0, riga)%}
 
-            <tr>
-                <th style="background-color:gainsboro">
-                    {{x}}
-                </th>
-                {% for y in range(0, colonna)%}
+    <tr>
+        <th style="background-color:gainsboro">
+            <b style="color: #2a2a2a">{{string.ascii_uppercase[x]}}</b>
+        </th>
+        {% for y in range(1, colonna+1)%}
 
+        <td class="{{ 'occupato' if False else 'libero' }}" data-numero="{{y}}" data-fila="{{string.ascii_uppercase[x]}}">
 
-                <td class=" {{ occupato if False else 'libero' }} " data-colonna="{{y}}" data-riga="{{x}}">
+        </td>
 
-                </td>
-
-                {% endfor %}
-            </tr>
-            {% endfor %}
+        {% endfor %}
+    </tr>
+   {% endfor %}
         </table>
         <form action="/acquista" method="POST">
             <input id="posti" name="posti" type="text" value="">
@@ -74,7 +75,9 @@
         </form>
 
     </div>
-</div>
+    </div>
 
+
+    <script src="{{ url_for('static', filename='js/prenota.js') }}"></script>
 
 {% endblock %}
