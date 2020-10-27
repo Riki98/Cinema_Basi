@@ -1,49 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Tickets</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block pagebody %}
+
+
+<div class="col-4">
+                <div class="row d-flex justify-content-around">
+                    <div class="dropdown">
+                <div class="row d-flex justify-content-around">
+                    <!-- Button trigger modal LOG OUT -->
+                    <form action="/logout" class="form-singin" method="POST">
+                        <button type="submit" class="btn btn-primary">
+                            Log Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <br><br>
+
     <div class="row">
         <div class="col-2"></div>
-        <div class="col-8">
-            <b> Grazie di aver scelto Ucimg per il tuo intrattenimento</b>
+        <div class="col-4">
+            <p> Grazie di aver scelto Ucimg per il tuo intrattenimento</p>
             <p> Ci si vede in sala!</p>
 
-
-            <table class="table-bordered table-dark">
-                {% for ticket in tickets %}
+            <br>
+            <h2>Biglietti prenotati</h2>
+            <b>Orario: {{ orario[0].hour }}:{{ orario[0].minute }}</b>
+            &nbsp; &nbsp;
+            <b>Sala n: {{ numSala[0] }}</b>
+            <br><br>
+            <table class="table table-bordered table-dark">
+                {% for x in range(0, len) %}
                 <tr>
                     <td>
-                        Riga: {{ posto.riga }}
+                        Fila: {{ posto[x]['fila'] }}
                     </td>
                     <td>
-                        Colonna: {{ posto.colonna }}
+                        Numero: {{ posto[x]['numero'] }}
                     </td>
-
-                    <td>
-                        Orario: {{ orario }}
-                    </td>
-                    <td>
-                        Sala n: {{ nSala }}
-                    </td>
-                    <td>
-
-                    </td>
-
                 </tr>
                {% endfor %}
             </table>
 
-
-            <h2>Orari disponibili</h2>
-            <table class="table-bordered table-dark">
-                {% for spettacolo in spettacoli %}
-
-            </table>
-
         </div>
     </div>
-</body>
-</html>
+
+{% endblock %}

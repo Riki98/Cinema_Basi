@@ -6,13 +6,6 @@ let preonotati = [];
 let numPosti = 1;
 let numPostiPosizionati = 0;
 
-$(document).ready(function(){
-   console.log("JavaScript & JQuery are working!")
-});
-
-$('#bottone').on('click', function (){
-    alert("DIOCANE");
-});
 
 $('#numPosti').on('click',function(){
     numPosti = $(this).val();
@@ -25,18 +18,23 @@ $('#numPosti').on('click',function(){
 
 $('.sala td.libero').on('click',function(){
     let posto = $(this);
-    console.log("ciaoo");
     if(numPostiPosizionati>=numPosti){
+        //if($(this).className == 'prenotato'){
+        //    posto.addClass("libero");
+        //    posto.removeClass("prenotato");
+        //    numPostiPosizionati--;
+        //}
         alert("n max posti raggiunto");
         return;
+    } else {
+        numPostiPosizionati++;
+
+        posto.addClass("prenotato");
+        posto.removeClass("libero");
+
+        preonotati.push(posto[0].dataset);
+        $("#posti").val(JSON.stringify(preonotati));
     }
-    numPostiPosizionati++;
-
-    posto.addClass("prenotato");
-    posto.removeClass("libero");
-
-    preonotati.push(posto[0].dataset);
-    $("#posti").val(JSON.stringify(preonotati));
 });
 
 

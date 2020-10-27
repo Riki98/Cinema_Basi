@@ -16,7 +16,6 @@
             crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/jquery-3.5.0.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/prenota.js') }}"></script>
     <title>Cinema_Basi</title>
 </head>
 
@@ -37,37 +36,8 @@
 
             {% endblock %}
 
-            {% include 'films.html' %}
 
-            <!-- Elenco FILM disponibili -->
 
-            <div class="works" id="work">
-                <div class="container">
-                    <!-- heading -->
-                    <h2 color="black">In sala...</h2>
-                    <!-- paragraph -->
-                    <p>Clicca sul film per saperne di più.</p>
-                    <div class="row">
-
-                        {% for film in movies %}
-
-                        <div class="col-md-3">
-                            <!-- work item -->
-                            <div class="work-item">
-                                <!-- work details image -->
-                                <img class="img-responsive" src="/static/img/Locandine/{{ film.titolo.strip() }}.png"/>
-                                <!-- heading -->
-                                <h3><a href="/film/{{film.idfilm}}">{{ film.titolo }}</a></h3>
-                                <!-- brand org -->
-                                <span class="org">{{ film.genere }}</span>
-                                <span class="org">{{ film.is3d }}</span>
-                            </div>
-                        </div>
-
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 

@@ -13,10 +13,12 @@ from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
-from urllib.parse import urlparse, urljoin
 # TYPE import
 import datetime
 import decimal
+import string
+import json
+
 
 # Security import (https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database)
 from werkzeug.security import generate_password_hash
@@ -168,6 +170,11 @@ def alchemyencoder(obj):
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
 
+def Convert(a):
+    it = iter(a)
+    res_dct = dict(zip(it, it))
+    return res_dct
+
 
 # render alla pagina principale
 @app.route('/', methods=['GET'])
@@ -214,41 +221,51 @@ def prenotazione(idProiezione):
     querySeats = select([sala]).where(sala.c.idsala == bindparam('selezionePosti'))
     seats = conn.execute(querySeats, {'selezionePosti':(proiezioni.idsala)}).fetchone()
 
-
     riga = seats.numfila
     colonna = seats.numcolonne
     conn.close()
-    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezione, riga=riga, colonna=colonna)
+    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezioni, riga=riga, colonna=colonna, string=string)
     # default=alchemyencoder
 
 
-@app.route('/acquista/<idProiezione>', methods=['POST'])
+@app.route('/acquista', methods=['POST'])
 @login_required
-def do_prenotazione(idProiezione):
+def acquista():
     conn = engine.connect()
-    pos = (request.form)
-    print(pos)
-    queryidSala = select([sala.c.idsala]). \
-        where(sala.c.idproiezione == idProiezione)
-    idSala = conn.execute(queryidSala)
-    queryIdPosto = select([posto.c.idposto]). \
-        where(posto.c.numero == pos[1] and (posto.c.fila == pos[0]) and (posto.c.idsala == idSala))
-    idPosto = conn.execute(queryIdPosto)
+    formPosti = (request.form['posti'])
+    # convert dictionary string to dictionary
+    posti = json.loads(formPosti)
+    queryidSala = select([proiezione.c.idsala]). \
+        where(proiezione.c.idproiezione == idProiezione)
+    idSala = conn.execute(queryidSala).fetchone()
+
     idUtente = current_user.get_id()
 
-    # insert nuovi biglietti
-    insreg = biglietto.insert
-    conn.execute(insreg, [
-        {
-            'idproiezione': idProiezione, 'idposto': idPosto,
-            'idutente': idUtente
-        }
-    ])
-    ##prepari dati a vista acquista
-    # ritorni vista acquista
-    conn.close()
-    return render_template('biglietto.html', ticket=ticket)
+    for x in range(0, len(posti)-1):
+        numero = posti[x]['numero']
+        fila = posti[x]['fila']
+        queryIdPosto = select([posto.c.idposto]). \
+            where(posto.c.numero == numero and (posto.c.fila == fila) and (posto.c.idsala == idSala))
+        idPosto = conn.execute(queryIdPosto).fetchone()
 
+        # insert nuovi biglietti
+        insreg = biglietto.insert()
+
+        conn.execute(insreg, [
+            {
+                'idproiezione': idProiezione, 'idposto': idPosto[x],
+                'idutente': idUtente
+            }
+        ])
+
+    #prepari dati a vista acquista
+    queryOrarioProiezione = select([proiezione.c.orario]). \
+        where(proiezione.c.idproiezione == idProiezione)
+    orarioProiezione = conn.execute(queryOrarioProiezione).fetchone()
+    conn.close()
+    return render_template('biglietto.html', numSala=idSala, orario=orarioProiezione, posto=posti, len=len(posti))
+
+    idProiezione = (request.form['idproiezione'])
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
