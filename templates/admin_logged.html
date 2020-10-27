@@ -5,7 +5,9 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
     <script>
         function show(shown, hidden) {
             document.getElementById(shown).style.display = 'block';
@@ -13,8 +15,9 @@
             return false;
         }
     </script>
-    <script src="{{ url_for('static', filename='js/htmlClass.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+
+    <link rel="stylesheet" href="/static/js/apex/apexcharts.css">
+    <script src="{{ url_for('static', filename='js/apex/apexcharts.js') }}"></script>
 
     <title>{{adminLogged}}</title>
 </head>
@@ -211,9 +214,67 @@
 
 
 <div id="Page2" style="display:none" class="col">
-    <br><br><br>
-    <h1>Ha funzionato</h1>
-    <br><br><br>
+    <div id="chart"></div>
+    {{stats}}
+    <script>
+     var options = {
+          series: [{
+          name: 'PRODUCT A',
+          data: [44, 55, 41, 67, 22, 43]
+        }, {
+          name: 'PRODUCT B',
+          data: [13, 23, 20, 8, 13, 27]
+        }, {
+          name: 'PRODUCT C',
+          data: [11, 17, 15, 15, 21, 14]
+        }, {
+          name: 'PRODUCT D',
+          data: [21, 7, 25, 13, 22, 8]
+        }],
+          chart: {
+          type: 'bar',
+          height: 350,
+          stacked: true,
+          toolbar: {
+            show: true
+          },
+          zoom: {
+            enabled: true
+          }
+        },
+        responsive: [{
+          breakpoint: 480,
+          options: {
+            legend: {
+              position: 'bottom',
+              offsetX: -10,
+              offsetY: 0
+            }
+          }
+        }],
+        plotOptions: {
+          bar: {
+            horizontal: false,
+          },
+        },
+        xaxis: {
+          type: 'datetime',
+          categories: ['01/01/2011 GMT', '01/02/2011 GMT', '01/03/2011 GMT', '01/04/2011 GMT',
+            '01/05/2011 GMT', '01/06/2011 GMT'
+          ],
+        },
+        legend: {
+          position: 'right',
+          offsetY: 40
+        },
+        fill: {
+          opacity: 1
+        }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+        </script>
 </div>
 
 <br><br>
