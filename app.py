@@ -16,12 +16,11 @@ from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
+import string
 from urllib.parse import urlparse, urljoin
 # TYPE import
 import datetime
 import decimal
-import string
-
 
 # Security import (https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database)
 from werkzeug.security import generate_password_hash
@@ -32,7 +31,7 @@ app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-#engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -172,11 +171,6 @@ def alchemyencoder(obj):
         return obj.isoformat()
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
-
-def Convert(a):
-    it = iter(a)
-    res_dct = dict(zip(it, it))
-    return res_dct
 
 
 # render alla pagina principale
