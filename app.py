@@ -16,6 +16,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
+import string
 from urllib.parse import urlparse, urljoin
 # TYPE import
 import datetime
@@ -222,7 +223,6 @@ def prenotazione(idProiezione):
     colonna = seats.numcolonne
     conn.close()
     return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezione, riga=riga, colonna=colonna)
-    # default=alchemyencoder
 
 
 @app.route('/acquista/<idProiezione>', methods=['POST'])
