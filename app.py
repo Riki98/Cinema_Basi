@@ -4,13 +4,12 @@ from operator import and_
 import json
 
 from datetime import datetime
-import flask
 from flask import Flask, render_template, request, json, redirect, url_for
 
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
-from sqlalchemy import select, insert, bindparam, Boolean, Time, Date, update, Table, desc, asc
+from sqlalchemy import select, insert, bindparam, Boolean, Time, Date, update, Table, desc, asc, distinct
 from sqlalchemy import Sequence
 from sqlalchemy import create_engine
 from sqlalchemy import func
@@ -30,8 +29,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -145,6 +144,23 @@ class User(UserMixin):
     def __repr__(self):
         return f'<User: {self.email}>'
 
+# class used to convert into JSON:
+class Dato:
+    def __init__(self, idfilm, titolo):
+        self.idfilm = idfilm
+        self.name = titolo
+        self.data = []
+
+    def add(self, n):
+        print("visite", n)
+        self.data.append(str(n))
+
+    def tostr(self):
+        return [str(num) for num in self.data]
+
+    def __str__(self):
+        return str(self.idfilm) + " " + self.name + " " + str([str(num) for num in self.data])
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -181,7 +197,7 @@ def home_page():
     films = conn.execute(queryFilms)
     conn.close()
     if current_user.is_authenticated:
-        return render_template('login.html', movies=films) # stessa pagina rimossa dei btn log in e register
+        return render_template('login.html', movies=films)  # stessa pagina rimossa dei btn log in e register
     else:
         return render_template('index.html', movies=films)
 
@@ -191,10 +207,12 @@ def home_page():
 def base_film(idFilm):
     conn = engine.connect()
     # query a db per recuperare entità film con id idFilm
-    queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(film.c.idfilm == bindparam("idFilmRecuperato"))
+    queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(
+        film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm}).fetchone()
 
-    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario]).where(proiezione.c.idfilm == bindparam("idProiezioneRecuperato"))
+    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario]).where(
+        proiezione.c.idfilm == bindparam("idProiezioneRecuperato"))
     proiezioni = conn.execute(queryProiezioni, {'idProiezioneRecuperato': idFilm})
 
     conn.close()
@@ -207,29 +225,28 @@ def base_film(idFilm):
 def prenotazione(idProiezione):
     conn = engine.connect()
 
-
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == bindparam('idProiezioniRichieste'))
-    proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste':idProiezione}).fetchone()
+    proiezioni = conn.execute(queryProiezione, {'idProiezioniRichieste': idProiezione}).fetchone()
 
     queryFilmToBeBooked = select([film]).where(film.c.idfilm == bindparam('idFilmProiezione'))
-    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione':(proiezioni.idfilm)}).fetchone()
+    filmToBeBooked = conn.execute(queryFilmToBeBooked, {'idFilmProiezione': (proiezioni.idfilm)}).fetchone()
 
     querySeats = select([sala]).where(sala.c.idsala == bindparam('idSala'))
-    seats = conn.execute(querySeats, {'idSala':(proiezioni.idsala)}).fetchone()
+    seats = conn.execute(querySeats, {'idSala': (proiezioni.idsala)}).fetchone()
 
     riga = seats.numfila
     colonna = seats.numcolonne
 
     queryPosti = select([posto]).where(posto.c.idsala == bindparam('idSala'))
-    posti = conn.execute(queryPosti, {'idSala':(proiezioni.idsala)})
+    posti = conn.execute(queryPosti, {'idSala': (proiezioni.idsala)})
 
-    queryBiglietti = select([biglietto.c.idposto]).order_by(asc(biglietto.c.idposto)).where(biglietto.c.idproiezione == bindparam('idProiezione'))
-    biglietti = conn.execute(queryBiglietti, {'idProiezione':(idProiezione)})
-
-
+    queryBiglietti = select([biglietto.c.idposto]).order_by(asc(biglietto.c.idposto)).where(
+        biglietto.c.idproiezione == bindparam('idProiezione'))
+    biglietti = conn.execute(queryBiglietti, {'idProiezione': (idProiezione)})
 
     conn.close()
-    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezioni, riga=riga, colonna=colonna, string=string) # posto=posti, ticket=biglietti)
+    return render_template('prenotazione.html', movie=filmToBeBooked, proiezione=proiezioni, riga=riga, colonna=colonna,
+                           string=string)  # posto=posti, ticket=biglietti)
     # default=alchemyencoder
 
 
@@ -247,7 +264,7 @@ def acquista():
 
     idUtente = current_user.get_id()
 
-    for x in range(0, len(posti)-1):
+    for x in range(0, len(posti)):
         numero = posti[x]['numero']
         fila = posti[x]['fila']
         queryIdPosto = select([posto.c.idposto]). \
@@ -259,12 +276,12 @@ def acquista():
 
         conn.execute(insreg, [
             {
-                'idproiezione': idProiezione, 'idposto': idPosto[x],
+                'idproiezione': idProiezione, 'idposto': idPosto[0],
                 'idutente': idUtente
             }
         ])
 
-    #prepari dati a vista acquista
+    # prepari dati a vista acquista
     queryOrarioProiezione = select([proiezione.c.orario]). \
         where(proiezione.c.idproiezione == idProiezione)
     orarioProiezione = conn.execute(queryOrarioProiezione).fetchone()
@@ -273,6 +290,7 @@ def acquista():
 
     idProiezione = (request.form['idproiezione'])
 
+
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -280,7 +298,8 @@ def login():
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
-        queryControlUser = select([utente]).where(and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
+        queryControlUser = select([utente]).where(
+            and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
         utente_log = conn.execute(queryControlUser, expectedEmail=form_email, expectedPAss=form_passw).fetchone()
         print(utente_log)
         conn.close()
@@ -309,48 +328,23 @@ def admin_page():
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
 
-        # query = conn.execute("select film.idfilm, film.titolo, dati.somma,dati.data from film INNER JOIN (select proiezione.idfilm, proiezione.data, sum(visite)as somma from proiezione LEFT JOIN (\
-        # select idproiezione, count(*) as visite from biglietto group by idproiezione) as visitatori\
-        # ON proiezione.idproiezione = visitatori.idproiezione group by proiezione.idfilm, proiezione.data) AS dati on film.idfilm = dati.idfilm order by film.idfilm,dati.data").fetchall()
-
-        query = conn.execute("select\
-        film.idfilm, film.titolo, date.data, (select sum(visite) as somma\
-        from proiezione left\
-        join(\
-            (select count( *) as visite, biglietto.idproiezione\
-        from biglietto group\
-        by\
-        idproiezione)) as visitatori\
-        on\
-        proiezione.idproiezione = visitatori.idproiezione\
-        where\
-        proiezione.idfilm = film.idfilm and proiezione.data = date.data)\
-        from film,\
-        (select distinct proiezione.data from proiezione)as date\
-        order\
-        by\
+        #select([film.c.idfilm, film.c.titolo, date.data, select(func.sum(visite)).select_from(proiezione).alias("somma")])
+        #somma dei biglietti divisi per film e data
+        query = conn.execute("SELECT\
+        film.idfilm, film.titolo, date.data, (SELECT SUM(visite) AS somma\
+        FROM proiezione LEFT JOIN(\
+            (SELECT COUNT(*) AS visite, biglietto.idproiezione\
+        FROM biglietto GROUP BY\
+        idproiezione)) AS visitatori ON\
+        proiezione.idproiezione = visitatori.idproiezione WHERE\
+        proiezione.idfilm = film.idfilm AND proiezione.data = date.data)\
+        FROM film,\
+        (SELECT DISTINCT proiezione.data FROM proiezione) AS date ORDER BY\
         film.idfilm, date.data\
         ")
         print(query)
-
-        giorni = conn.execute("select distinct proiezione.data from proiezione order by proiezione.data").fetchall()
-
-        # convert into JSON:
-        class Dato:
-            def __init__(self, idfilm, titolo):
-                self.idfilm = idfilm
-                self.name = titolo
-                self.data = []
-
-            def add(self, n):
-                print("visite", n)
-                self.data.append(str(n))
-
-            def tostr(self):
-                return [str(num) for num in self.data]
-
-            def __str__(self):
-                return str(self.idfilm) + " " + self.name + " " + str([str(num) for num in self.data])
+        #query di divisione dei giorni per ogni proiezione
+        giorni = conn.execute(select([distinct(proiezione.c.data)]).order_by(proiezione.c.data)).fetchall()
 
         array = []
         lastId = -1
@@ -366,12 +360,10 @@ def admin_page():
         stats = json.dumps([dato.__dict__ for dato in array])
         giorni = json.dumps([giorno[0].strftime('%m/%d/%Y') for giorno in giorni])
 
-
-
         conn.close()
 
         return render_template('admin_logged.html', arrayFilms=queryTakenFilms, stats=stats,
-                       adminLogged=current_user.get_email(), giorni=giorni)
+                               adminLogged=current_user.get_email(), giorni=giorni)
 
 
 # REGISTER
@@ -441,9 +433,18 @@ def ripubblicazione(idFilm):
 @app.route('/film/update/<idFilm>', methods=['GET'])
 @login_required
 def updateFilm(idFilm):
+    newTitle = request.form["inputTitle"]
+    newGenre = request.form["inputGenre"]
+    is3d = request.form["input3d"]
+    newPlot = request.form["inputPlot"]
+    newStartData = request.form["newStartData"]
+    newLastData = request.form["newLastData"]
+    newDuration = request.form["newDuration"]
+    newCountry = request.form["newCountry"]
+    newYearPubb = request.form["newYearPubb"]
+    newMinAge = request.form["newMinAge"]
     conn = engine.connect()
-    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 1})
-    conn.execute(queryDelete, {'filmTaken': idFilm})
+    queryUpdate = ""
     print("Ciaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
     conn.close()
     return redirect("/admin")
