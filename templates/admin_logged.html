@@ -31,7 +31,6 @@
     <a class="navbar-brand" href="#"><h1 class="font-weight-bold">UCIMG</h1></a>
 </nav>
 
-
 <div class="btn-group btn-group-toggle" data-toggle="buttons">
     <label class="btn btn-secondary active" onclick="return show('Page1','Page2');">
         <input type="radio" name="options" id="option1" checked> Film
@@ -39,12 +38,142 @@
     <label class="btn btn-secondary" onclick="return show('Page2','Page1');">
         <input type="radio" name="options" id="option2"> Stats
     </label>
-
 </div>
 
-
 <div id="Page1" class="col">
-    <br><br><br>
+    <br><br>
+    <div>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary" data-toggle="modal"
+                data-target="#modalInsertFilm">
+            Aggiungi Film
+        </button>
+        <!-- Modal -->
+        <div class="modal fade" id="modalInsertFilm" tabindex="-1"
+        aria-labelledby="modalUpdateLabel"
+        aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalInsertFilmLabel">Modifica film</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="/film/insert" method="POST" class="form-signup">
+                            <div class="row">
+                                <div class="col-1"></div>
+                                <div class="col">
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <label for="newTitle">Titolo</label>
+                                            <input name="newTitle" type="text"
+                                                   class="form-control"
+                                                   id="newTitle">
+                                        </div>
+
+                                        <div class="form-group col-md-6">
+                                            <label for="newGenre">Genere</label>
+                                            <input name="newGenre" type="text"
+                                                   class="form-control"
+                                                   id="newGenre" >
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newPlot">Trama</label>
+                                        <input name="newPlot" type="text"
+                                               class="form-control"
+                                               id="newPlot">
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <label for="is3d">3D</label>
+                                            <select name="is3d"
+                                                    id="is3d" class="form-control">
+                                                <option value="False">No</option>
+                                                <option value="True">Si</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label for="newMinAge"><14</label>
+                                            <select name="newMinAge"
+                                                    id="newMinAge" class="form-control">
+                                                <option value="False">No</option>
+                                                <option value="True">Si</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <label for="newStartData">Data Inizio</label>
+                                            <input name="newStartData" type="text"
+                                                    class="form-control"
+                                                    id="newStartData"
+                                                    placeholder="AAAA-MM-GG">
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label for="newLastData">Data Fine</label>
+                                            <input name="newLastData" type="text"
+                                                    class="form-control"
+                                                    id="newLastData"
+                                                    placeholder="AAAA-MM-GG">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-4">
+                                            <label for="newCountry">Paese</label>
+                                            <input name="newCountry" type="text"
+                                                   class="form-control"
+                                                   id="newCountry">
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label for="newYearPubb">Anno</label>
+                                            <input name="newYearPubb" type="text"
+                                                   class="form-control"
+                                                   id="newYearPubb">
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label for="newDuration">Durata</label>
+                                            <input name="newDuration" type="text"
+                                                    class="form-control"
+                                                    id="newDuration"
+                                                    placeholder="(In minuti)">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <label>Aggiungere entrambi anche se un attore è anche regista</label>
+                                        <br>
+                                        <div class="form-group col-md-6">
+                                            <label for="newMovDir">Registi</label>
+                                            <input name="newMovDir" type="text"
+                                                    class="form-control"
+                                                    id="newMovDir"
+                                                    placeholder="Nome Cognome, Nome Cognome">
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label for="newActors">Attori</label>
+                                            <input name="newActors" type="text"
+                                                    class="form-control"
+                                                    id="newActors"
+                                                    placeholder="Nome Cognome, Nome Cognome">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    Close
+                                </button>
+                                <button type="submit" class="btn btn-primary">Save changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
     <div class="row">
         <div class="col-1"></div>
         <div class="col">
@@ -112,73 +241,102 @@
                                                 <div class="col">
                                                     <div class="form-row">
                                                         <div class="form-group col-md-6">
-                                                            <label for="inputTitle">Titolo</label>
-                                                            <input name="inputTitle" type="text" class="form-control"
-                                                                   id="inputTitle" value="{{row.titolo}}">
+                                                            <label for="inputTitle{{row.idfilm}}">Titolo</label>
+                                                            <input name="inputTitle{{row.idfilm}}" type="text"
+                                                                   class="form-control"
+                                                                   id="inputTitle{{row.idfilm}}" value="{{row.titolo}}">
                                                         </div>
 
                                                         <div class="form-group col-md-6">
-                                                            <label for="inputGenre">Genere</label>
-                                                            <input name="inputGenre" type="text" class="form-control"
-                                                                   id="inputGenre" value="{{row.genere}}">
+                                                            <label for="inputGenre{{row.idfilm}}">Genere</label>
+                                                            <input name="inputGenre{{row.idfilm}}" type="text"
+                                                                   class="form-control"
+                                                                   id="inputGenre{{row.idfilm}}" value="{{row.genere}}">
                                                         </div>
                                                     </div>
                                                     <div class="form-group">
-                                                        <label for="inputPlot">Trama</label>
-                                                        <input name="inputPlot" type="text" class="form-control"
-                                                               id="inputPlot" value="{{row.trama}}">
+                                                        <label for="inputPlot{{row.idfilm}}">Trama</label>
+                                                        <input name="inputPlot{{row.idfilm}}" type="text"
+                                                               class="form-control"
+                                                               id="inputPlot{{row.idfilm}}" value="{{row.trama}}">
                                                     </div>
                                                     <div class="form-row">
                                                         <div class="form-group col-md-6">
-                                                            <label for="input3d">3D</label>
-                                                            <input name="input3d" type="text" class="form-control"
-                                                                   id="input3d" value="{{row.is3d}}">
+                                                            <label for="input3d{{row.idfilm}}">3D</label>
+                                                            <select name="input3d{{row.idfilm}}"
+                                                                    id="input3d{{row.idfilm}}" class="form-control">
+                                                                <option value="False">No</option>
+                                                                <option value="True"
+                                                                        {%if row.is3d %}
+                                                                        selected
+                                                                        {%endif%}>Si
+                                                                </option>
+
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group col-md-6">
+                                                            <label for="inputVM{{row.idfilm}}"><14</label>
+                                                            <select name="inputVM{{row.idfilm}}"
+                                                                    id="inputVM{{row.idfilm}}" class="form-control">
+                                                                <option value="False">No</option>
+                                                                <option value="True"
+                                                                        {%if row.vm %}
+                                                                        selected
+                                                                        {%endif%}>Si
+                                                                </option>
+
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row">
+                                                        <div class="form-group col-md-6">
+                                                            <label for="inputStartDate{{row.idfilm}}">Data
+                                                                Inizio</label>
+                                                            <input name="inputStartDate{{row.idfilm}}" type="text"
+                                                                   class="form-control"
+                                                                   id="inputStartDate{{row.idfilm}}"
+                                                                   value="{{row.datainizio}}">
                                                         </div>
 
                                                         <div class="form-group col-md-6">
-                                                            <label for="inputVM"><14</label>
-                                                            <input name="inputVM" type="text" class="form-control"
-                                                                   id="inputVM" value="{%if row.vm == 1%} True {%else%} False {%endif%}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-row">
-                                                        <div class="form-group col-md-6">
-                                                            <label for="inputStartDate">Data Inizio</label>
-                                                            <input name="inputStartDate" type="text" class="form-control"
-                                                                   id="inputStartDate" value="{{row.datainizio}}">
-                                                        </div>
-
-                                                        <div class="form-group col-md-6">
-                                                            <label for="inputEndDate">Data Fine</label>
-                                                            <input name="inputEndDate" type="text" class="form-control"
-                                                                   id="inputEndDate" value="{{row.datafine}}">
+                                                            <label for="inputEndDate{{row.idfilm}}">Data Fine</label>
+                                                            <input name="inputEndDate{{row.idfilm}}" type="text"
+                                                                   class="form-control"
+                                                                   id="inputEndDate{{row.idfilm}}"
+                                                                   value="{{row.datafine}}">
                                                         </div>
                                                     </div>
                                                     <div class="form-row">
                                                         <div class="form-group col-md-4">
-                                                            <label for="inputCountry">Paese</label>
-                                                            <input name="inputCountry" type="text" class="form-control"
-                                                                   id="inputCountry" value="{{row.paese}}">
+                                                            <label for="inputCountry{{row.idfilm}}">Paese</label>
+                                                            <input name="inputCountry{{row.idfilm}}" type="text"
+                                                                   class="form-control"
+                                                                   id="inputCountry{{row.idfilm}}"
+                                                                   value="{{row.paese}}">
                                                         </div>
                                                         <div class="form-group col-md-4">
-                                                            <label for="inputYear">Anno</label>
-                                                            <input name="inputYear" type="text" class="form-control"
-                                                                   id="inputYear" value="{{row.anno}}">
+                                                            <label for="inputYear{{row.idfilm}}">Anno</label>
+                                                            <input name="inputYear{{row.idfilm}}" type="text"
+                                                                   class="form-control"
+                                                                   id="inputYear{{row.idfilm}}" value="{{row.anno}}">
                                                         </div>
                                                         <div class="form-group col-md-4">
-                                                            <label for="inputDuration">Durata</label>
-                                                            <input name="inputDuration" type="text" class="form-control"
-                                                                   id="inputDuration" value="{{row.durata}}">
+                                                            <label for="inputDuration{{row.idfilm}}">Durata</label>
+                                                            <input name="inputDuration{{row.idfilm}}" type="text"
+                                                                   class="form-control"
+                                                                   id="inputDuration{{row.idfilm}}"
+                                                                   value="{{row.durata}}">
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                            </div>
                                         </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close
-                                        </button>
-                                        <button type="button" class="btn btn-primary">Save changes</button>
                                     </div>
                                 </div>
                             </div>
@@ -190,87 +348,59 @@
         </div>
         <div class="col-1"></div>
     </div>
-    <div>
-        <button> Aggiungi film</button>
-    </div>
 </div>
 
 
 <div id="Page2" style="display:none" class="col">
+    <br><br><br>
     <div id="chart"></div>
     {{giorni | tojson}}
-    <script>
-        var options = {
-            series: {
-        {
-            stats | safe
-        }
-        },
-        chart: {
-            type: 'bar',
-                height
-        :
-            350,
-                stacked
-        :
-            true,
-                toolbar
-        :
-            {
-                show: true
-            }
-        ,
-            zoom: {
-                enabled: true
-            }
-        }
-        ,
-        responsive: [{
-            breakpoint: 480,
-            options: {
-                legend: {
-                    position: 'bottom',
-                    offsetX: -10,
-                    offsetY: 0
+        <script>
+            var options = {
+            series: {{stats | safe}},
+            chart: {
+                type: 'bar',
+                height: 350,
+                stacked: true,
+                toolbar:
+                    {
+                        show: true
+                    },
+                zoom: {
+                    enabled: true
                 }
-            }
-        }],
-            plotOptions
-        :
-        {
-            bar: {
-                horizontal: false,
-            }
-        ,
-        }
-        ,
+            },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    legend: {
+                        position: 'bottom',
+                        offsetX: -10,
+                        offsetY: 0
+                    }
+                }
+            }],
+            plotOptions: {
+                bar: {horizontal: false},
+            },
         xaxis: {
-            type: 'datetime', categories
-        :
-            {
-                {
-                    giorni | safe
-                }
+            type:
+                'datetime',
+                categories:{{giorni | safe}}
+            },
+            legend: {
+                position: 'right',
+                offsetY: 40
+            },
+            fill: {
+                opacity: 1
             }
-        ,
-        }
-        ,
-        legend: {
-            position: 'right',
-                offsetY
-        :
-            40
-        }
-        ,
-        fill: {
-            opacity: 1
-        }
-        }
-        ;
+        };
 
         var chart = new ApexCharts(document.querySelector("#chart"), options);
         chart.render();
     </script>
+    {{giorni}}
 </div>
 
 <br><br>

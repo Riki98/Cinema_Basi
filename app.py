@@ -2,9 +2,8 @@
 from operator import and_
 
 import json
-
 from datetime import datetime
-from flask import Flask, render_template, request, json, redirect, url_for
+from flask import Flask, render_template, request, json, redirect
 
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
@@ -16,20 +15,19 @@ from sqlalchemy import func
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
 import string
-from urllib.parse import urlparse, urljoin
+
 # TYPE import
 import datetime
 import decimal
 
-# Security import (https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database)
-from werkzeug.security import generate_password_hash
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
 app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+engine = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi', echo=True)
 # engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
@@ -144,6 +142,7 @@ class User(UserMixin):
     def __repr__(self):
         return f'<User: {self.email}>'
 
+
 # class used to convert into JSON:
 class Dato:
     def __init__(self, idfilm, titolo):
@@ -152,7 +151,7 @@ class Dato:
         self.data = []
 
     def add(self, n):
-        print("visite", n)
+        print("Dato: visite ", n)
         self.data.append(str(n))
 
     def tostr(self):
@@ -173,8 +172,7 @@ def load_user(user_id):
         real_id = int(user[1])
         real_email = str(user[0]).strip()
         real_role = user['role']
-        print("LoadUser")
-        print(real_email)
+        print("LoadUser " + real_email)
         return User(real_id, real_email, real_role)
 
 
@@ -301,15 +299,15 @@ def login():
         queryControlUser = select([utente]).where(
             and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
         utente_log = conn.execute(queryControlUser, expectedEmail=form_email, expectedPAss=form_passw).fetchone()
-        print(utente_log)
+        print("login -> " + utente_log)
         conn.close()
         if utente_log is None:
             return redirect("/")  # home_page()
         else:
-            print(utente_log)
+            print("login -> " + utente_log)
             login_user(User(utente_log['idutente'], utente_log['email'], utente_log['role']))  # appoggio a flask_login
             active_users.append(utente_log)
-            print("Logged in successfully.")
+            print("login -> Logged in successfully.")
             if int(current_user.get_role()) == 0:
                 return redirect("/")
             else:
@@ -323,13 +321,13 @@ def admin_page():
     if current_user.role == 0:
         return redirect("/")
     else:
-        print(current_user)
+        print("admin_page " + current_user.email)
         conn = engine.connect()
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
 
-        #select([film.c.idfilm, film.c.titolo, date.data, select(func.sum(visite)).select_from(proiezione).alias("somma")])
-        #somma dei biglietti divisi per film e data
+        # select([film.c.idfilm, film.c.titolo, date.data, select(func.sum(visite)).select_from(proiezione).alias("somma")])
+        # somma dei biglietti divisi per film e data
         query = conn.execute("SELECT\
         film.idfilm, film.titolo, date.data, (SELECT SUM(visite) AS somma\
         FROM proiezione LEFT JOIN(\
@@ -342,8 +340,8 @@ def admin_page():
         (SELECT DISTINCT proiezione.data FROM proiezione) AS date ORDER BY\
         film.idfilm, date.data\
         ")
-        print(query)
-        #query di divisione dei giorni per ogni proiezione
+        # print(query)
+        # query di divisione dei giorni per ogni proiezione
         giorni = conn.execute(select([distinct(proiezione.c.data)]).order_by(proiezione.c.data)).fetchall()
 
         array = []
@@ -430,41 +428,67 @@ def ripubblicazione(idFilm):
     return redirect("/admin")
 
 
-@app.route('/film/update/<idFilm>', methods=['GET'])
+@app.route('/film/update/<idFilm>', methods=['GET', 'POST'])
 @login_required
 def updateFilm(idFilm):
-    newTitle = request.form["inputTitle"]
-    newGenre = request.form["inputGenre"]
-    is3d = request.form["input3d"]
-    newPlot = request.form["inputPlot"]
-    newStartData = request.form["newStartData"]
-    newLastData = request.form["newLastData"]
-    newDuration = request.form["newDuration"]
-    newCountry = request.form["newCountry"]
-    newYearPubb = request.form["newYearPubb"]
-    newMinAge = request.form["newMinAge"]
-    conn = engine.connect()
-    queryUpdate = ""
-    print("Ciaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
+    print("updateFilm")
+    inputTitle = request.form["inputTitle" + idFilm]
+    inputGenre = request.form["inputGenre" + idFilm]
+    if request.form["input3d" + idFilm] == 'True':
+        input3d = True
+        print("DC")
+    else:
+        input3d = False
+    inputPlot = request.form["inputPlot" + idFilm]
+    inputStartData = request.form["inputStartDate" + idFilm]
+    inputEndData = request.form["inputEndDate" + idFilm]
+    inputDuration = request.form["inputDuration" + idFilm]
+    inputCountry = request.form["inputCountry" + idFilm]
+    inputYearPubb = request.form["inputYear" + idFilm]
+    if request.form["inputVM" + idFilm] == 'True':
+        inputMinAge = True
+        print("FALZO")
+    else:
+        inputMinAge = False
+        print("VERO")
+    print(inputMinAge)
+    eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
+                        isolation_level='REPEATABLE READ')
+    conn = eng.connect()
+    queryUpdate = update(film). \
+        where(film.c.idfilm == bindparam("expectedFilm")).values(titolo=bindparam("newInputTitle"),
+                                                                 genere=bindparam("newInputGenre"),
+                                                                 is3d=bindparam("newInput3d"),
+                                                                 trama=bindparam("newInputPlot"),
+                                                                 datainizio=bindparam("newInputStartDate"),
+                                                                 datafine=bindparam("newInputEndDate"),
+                                                                 durata=bindparam("newInputDuration"),
+                                                                 paese=bindparam("newInputCountry"),
+                                                                 anno=bindparam("newInputYear"),
+                                                                 vm=bindparam("newInputVm"))
+    conn.execute(queryUpdate, expectedFilm=idFilm, newInputTitle=inputTitle, newInputGenre=inputGenre,
+                 newInput3d=input3d, newInputPlot=inputPlot,
+                 newInputStartDate=inputStartData, newInputEndDate=inputEndData, newInputDuration=inputDuration,
+                 newInputCountry=inputCountry,
+                 newInputYear=inputYearPubb, newInputVm=inputMinAge)
     conn.close()
     return redirect("/admin")
 
 
-def stas():
+def stats():
     conn = engine.connect()
     queryTicketsSold = select([])
     # biglietti per mese
     # select proiezione.idfilm, proiezione.data, sum(visite) from proiezione LEFT JOIN (
 
+    # select idproiezione, count(*) as visite from biglietto group by idproiezione) as visitatori
+    # ON proiezione.idproiezione = visitatori.idproiezione group by proiezione.idfilm, proiezione.data
+    # genere più visto nel tempo
+    # numero posti prenotati su posti disponibili
+    # film più guardato
 
-# select idproiezione, count(*) as visite from biglietto group by idproiezione) as visitatori
-# ON proiezione.idproiezione = visitatori.idproiezione group by proiezione.idfilm, proiezione.data
-# genere più visto nel tempo
-# numero posti prenotati su posti disponibili
-# film più guardato
 
-
-@app.route('/create_page_film', methods=['POST'])
+@app.route('/film/insert', methods=['GET', 'POST'])
 def insert_film():
     newTitle = request.form["newTitle"]
     newGenre = request.form["newGenre"]
@@ -575,7 +599,7 @@ def insert_film():
 
     conn.close()
 
-    return render_template("admin_logged.html")
+    return redirect("/admin")
 
 
 if __name__ == '__main__':
