@@ -52,8 +52,8 @@
    {% endfor %}
         </table>
         <form action="/acquista" method="POST">
-            <input id="posti" name="posti" type="text" value="">
-            <input name="idproiezione" type="text" value="{{ proiezione.idproiezione }}">
+            <input id="posti" name="posti" type="text" value="" hidden>
+            <input name="idproiezione" type="text" value="{{ proiezione.idproiezione }}" hidden>
             <button type="submit">ACQUISTA</button>
         </form>
 
