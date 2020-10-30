@@ -316,7 +316,7 @@ def acquista():
         where(proiezione.c.idproiezione == idProiezione)
     orarioProiezione = conn.execute(queryOrarioProiezione).fetchone()
     conn.close()
-    return render_template('biglietto.html', numSala=idSala, orario=orarioProiezione, posto=postiAcquistati, len=len(postiAcquistati\\\\\\\\\\\\\\\\\\\\))
+    return render_template('biglietto.html', numSala=idSala, orario=orarioProiezione, posto=postiAcquistati, len=len(postiAcquistati))
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
