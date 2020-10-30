@@ -27,8 +27,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
+engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -241,9 +241,9 @@ def prenotazione(idProiezione):
     biglietti = conn.execute(queryBiglietti).fetchall()
     posti = []
 
-    for i in range(riga):
+    for i in range(riga+1):
         posti.append([])
-        for j in range(colonna):
+        for j in range(colonna+1):
             posti[i].append(False)
 
     for b in biglietti:
@@ -296,7 +296,7 @@ def acquista():
         # questo biglietto non dovrebbe esistere
         queryBiglietto = select([biglietto]).\
             where(and_(biglietto.c.idproiezione == idProiezione, biglietto.c.idposto == idPosto[0]))
-        b = conn.execute(queryBiglietto)
+        b = conn.execute(queryBiglietto).fetchone()
         if b is None:
             # insert nuovi biglietti
             insreg = biglietto.insert()
@@ -317,6 +317,24 @@ def acquista():
     orarioProiezione = conn.execute(queryOrarioProiezione).fetchone()
     conn.close()
     return render_template('biglietto.html', numSala=idSala, orario=orarioProiezione, posto=postiAcquistati, len=len(postiAcquistati))
+
+# AREA UTENTE
+@app.route('/areaUtente', methods=['GET', 'POST'])
+def areaUtente():
+    conn = engine.connect()
+    #queryBigliettiTot = select([posto.fila, posto.numero, proiezione.orario, proiezione.data, film.titolo])\
+    #    .select_from(posto.join(biglietto)).select_from(biglietto.join(proiezione)).select_from(proiezione.join(film))\
+    #    .where(biglietto.c.idutente == current_user.id)
+    queryBigliettiTot = "select posto.fila, posto.numero, proiezione.orario, proiezione.data, film.titolo " \
+                        "from posto inner join biglietto on biglietto.idPosto=posto.idPosto " \
+                        "inner join proiezione on proiezione.idProiezione=biglietto.idProiezione " \
+                        "inner join film on film.idFilm=proiezione.idFilm " \
+                        "where biglietto.idUtente="+str(current_user.id)+";"
+    biglietti = conn.execute(queryBigliettiTot).fetchall()
+    for b in biglietti:
+        print(b)
+    conn.close()
+    return render_template('areaUtente.html', biglietti=biglietti)
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
