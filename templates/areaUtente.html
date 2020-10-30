@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block pagebody %}
+
+{% include 'logout.html' %}
+<br><br><br>
+<div class="row">
+    <div class="col-3"></div>
+    <div class="col-5">
+        <h3>Area Utente: {{ current_user.email }}</h3>
+        <br>
+        <h5>Ecco tutti i tuoi biglietti prenotati</h5>
+    </div>
+</div>
+<br><br>
+<div class="row">
+    <div class="col-2"></div>
+    <div class="col-8">
+        <table class="table table-bordered table-dark">
+            <tr>
+                <td>Titolo film</td>
+                <td>Giorno</td>
+                <td>Ora</td>
+                <td>Fila</td>
+                <td>Numero</td>
+            </tr>
+            {% for b in biglietti %}
+            <tr>
+                <td>
+                    {{ b.titolo }}
+                </td>
+                <td>
+                    {{ b.data }}
+                </td>
+                <td>
+                    {{ b.orario }}
+                </td>
+                <td>
+                    {{ b.fila }}
+                </td>
+                <td>
+                    {{ b.numero }}
+                </td>
+            </tr>
+           {% endfor %}
+        </table>
+    </div>
+</div>
+
+
+{% endblock %}

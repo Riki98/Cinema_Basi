@@ -16,11 +16,11 @@
                         <!-- work details image -->
                         <img class="img-responsive" src="/static/img/Locandine/{{ film.titolo.strip() }}.png"/>
                         <!-- heading -->
-                        <h3> <a
+                        <h5> <a class="text-center"
                             {% if current_user.is_authenticated %}
                             href="/film/{{film.idfilm}}"
-                            {% endif %}
-                            >{{ film.titolo }}</a></h3>
+                            {% endif %}>
+                            {{ film.titolo }}</a></h5>
                         &nbsp;&nbsp;
                         <!-- brand org -->
                         <span class="org">{{ film.genere }}</span>
