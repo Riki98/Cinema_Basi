@@ -3,6 +3,8 @@ from operator import and_
 
 import json
 from datetime import datetime, date
+from sqlite3.dbapi2 import Binary
+
 from flask import Flask, render_template, request, json, redirect, url_for
 
 # DB e Users import
@@ -20,6 +22,7 @@ import string
 import datetime
 import decimal
 
+from sqlalchemy.dialects.postgresql import psycopg2
 from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
@@ -27,8 +30,8 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-#engine = create_engine('postgres://postgres:12358@localhost:5432/CinemaBasi', echo=True)
-engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+engine = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi')
+#engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
 
@@ -45,6 +48,7 @@ film = Table('film', metadata,
              Column('anno', Integer),
              Column('vm', Integer),
              Column('shown', Boolean)
+             #Column('img', Binary)
              )
 
 utente = Table('utente', metadata,
@@ -549,14 +553,32 @@ def insert_film():
     newCountry = request.form["newCountry"]
     newYearPubb = request.form["newYearPubb"]
     newMinAge = request.form["newMinAge"]
+    newImage = request.files["newImage"]
+    newMovDir = request.form["newMovDir"]
+    newActors = request.form["newActors"]
 
+    print(newTitle + " -> titolo")
+    print(newGenre + "-> genere")
+    print(is3d + "-> 3D")
+    print(newPlot + "-> trama")
+    print(newStartData + "-> data inizio")
+    print(newLastData + "-> data fine")
+    print(newDuration + "-> durata")
+    print(newCountry + "-> paese")
+    print(newYearPubb + "-> anno")
+    print(newMinAge + "-> vm")
+    print(newImage + "-> img")
+
+    # FIN QUA SCRIVE CORRETTO
     conn = engine.connect()
 
-    idFilmDB = select([func.max(film.c.idfilm)]) + 1
+    queruyIdFilmDB = select([func.max(film.c.idfilm)])
+    idFilmDBres = conn.execute(queruyIdFilmDB).fetchone()
+    idFilmDB = idFilmDBres[0] + 1
     # Controllo se il film sia già presente nel database
     isThereQuery = select([film.c.titolo, film.c.anno]). \
         where(and_(film.c.anno == bindparam('annoFilm'), film.c.titolo == bindparam('titoloFilm')))
-    isThere = conn.execute(isThereQuery, {'titoloFilm': newTitle, 'annoFilm': newYearPubb}).fetchone()[0]
+    isThere = conn.execute(isThereQuery, titoloFilm=newTitle, annoFilm=newYearPubb)
 
     if isThere is None:
         # QUERY DI AGGIUNTA DI UN FILM
@@ -576,7 +598,6 @@ def insert_film():
         print("Il film esiste già")
 
     ############ AGGIORNAMENTO DIRECTOR MOVIE ############
-    newMovDir = request.form["newMovDir"]
     arrayNewDirectors = newMovDir.split(', ')
     for director in arrayNewDirectors:
         queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]). \
@@ -609,7 +630,6 @@ def insert_film():
             ])
 
     ############ AGGIORNAMENTO ACTOR MOVIE #############
-    newActors = request.form["newActors"]
     arrayNewActors = newActors.split(', ')
     for actor in arrayNewActors:
         queryDbActor = select([persona.c.idpersona, persona.c.nomecognome]). \
@@ -640,10 +660,12 @@ def insert_film():
             ])
 
     ###### SALVATAGGIO DELLA LOCANDINA
-    image = request.files["newImage"]
-
-    image.save('.\static\img\Locandine', image)
-
+    #imageInsert = film.insert()
+    #conn.execute(imageInsert, [
+    #    {
+    #        'img' : image
+    #    }
+    #])
     print("Immagine salvata")
 
     conn.close()
