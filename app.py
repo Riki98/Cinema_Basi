@@ -299,12 +299,10 @@ def login():
         queryControlUser = select([utente]).where(
             and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
         utente_log = conn.execute(queryControlUser, expectedEmail=form_email, expectedPAss=form_passw).fetchone()
-        print("login -> " + utente_log)
         conn.close()
         if utente_log is None:
             return redirect("/")  # home_page()
         else:
-            print("login -> " + utente_log)
             login_user(User(utente_log['idutente'], utente_log['email'], utente_log['role']))  # appoggio a flask_login
             active_users.append(utente_log)
             print("login -> Logged in successfully.")
@@ -591,7 +589,7 @@ def insert_film():
             ])
 
     ###### SALVATAGGIO DELLA LOCANDINA
-    image = request.files["image"]
+    image = request.files["newImage"]
 
     image.save('.\static\img\Locandine', image)
 
