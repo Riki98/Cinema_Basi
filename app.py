@@ -553,23 +553,13 @@ def insert_film():
     newCountry = request.form["newCountry"]
     newYearPubb = request.form["newYearPubb"]
     newMinAge = request.form["newMinAge"]
-    newImage = request.files["newImage"]
     newMovDir = request.form["newMovDir"]
     newActors = request.form["newActors"]
+    newImage = request.form["newImage"]
 
-    print(newTitle + " -> titolo")
-    print(newGenre + "-> genere")
-    print(is3d + "-> 3D")
-    print(newPlot + "-> trama")
-    print(newStartData + "-> data inizio")
-    print(newLastData + "-> data fine")
-    print(newDuration + "-> durata")
-    print(newCountry + "-> paese")
-    print(newYearPubb + "-> anno")
-    print(newMinAge + "-> vm")
-    print(newImage + "-> img")
 
-    # FIN QUA SCRIVE CORRETTO
+
+
     conn = engine.connect()
 
     queruyIdFilmDB = select([func.max(film.c.idfilm)])
@@ -578,7 +568,7 @@ def insert_film():
     # Controllo se il film sia già presente nel database
     isThereQuery = select([film.c.titolo, film.c.anno]). \
         where(and_(film.c.anno == bindparam('annoFilm'), film.c.titolo == bindparam('titoloFilm')))
-    isThere = conn.execute(isThereQuery, titoloFilm=newTitle, annoFilm=newYearPubb)
+    isThere = conn.execute(isThereQuery, titoloFilm=newTitle, annoFilm=newYearPubb).fetchone()
 
     if isThere is None:
         # QUERY DI AGGIUNTA DI UN FILM
@@ -586,14 +576,14 @@ def insert_film():
         conn.execute(insNewFilm, [
             {
                 'idfilm': idFilmDB, 'titolo': newTitle,
-                'is3d': is3d, 'genere': newGenre,
+                'is3d': bool(is3d), 'genere': newGenre,
                 'trama': newPlot, 'datainizio': newStartData,
                 'datafine': newLastData, 'durata': newDuration,
                 'Paese': newCountry, 'Anno': newYearPubb,
-                'vm': newMinAge
+                'vm': bool(newMinAge)
             }
         ])
-        print("Film inserito")
+        print("Film non esistente, inserito")
     else:
         print("Il film esiste già")
 
@@ -602,13 +592,13 @@ def insert_film():
     for director in arrayNewDirectors:
         queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]). \
             where(persona.c.nomecognome == bindparam('nomeRegista'))
-        dbDirector = conn.execute(queryDbDirector, {'nomeRegista': director})  # eseguo la ricerca
+        dbDirector = conn.execute(queryDbDirector, nomeRegista=director).fetchall()  # eseguo la ricerca
 
         insNewDirectorMovie = registafilm.insert()
         if dbDirector is not None:  # se è già presente
             conn.execute(insNewDirectorMovie, [
                 {
-                    'idregista': dbDirector[0], 'idfilm': idFilmDB
+                    'idregista': dbDirector[0].idpersona, 'idfilm': idFilmDB
                 }
             ])
         else:  # se invece non c'è
@@ -634,7 +624,7 @@ def insert_film():
     for actor in arrayNewActors:
         queryDbActor = select([persona.c.idpersona, persona.c.nomecognome]). \
             where(persona.c.nomecognome == bindparam('nomeAttore'))
-        dbActors = conn.execute(queryDbActor, {'nomeAttore': actor})  # eseguo la ricerca
+        dbActors = conn.execute(queryDbActor, nomeAttore=actor)  # eseguo la ricerca
         insNewActorsMovie = registafilm.insert()
         if dbActors is not None:  # se è già presente
             conn.execute(insNewActorsMovie, [
@@ -663,7 +653,7 @@ def insert_film():
     #imageInsert = film.insert()
     #conn.execute(imageInsert, [
     #    {
-    #        'img' : image
+    #        'img' : newImage
     #    }
     #])
     print("Immagine salvata")
