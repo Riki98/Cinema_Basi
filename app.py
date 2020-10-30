@@ -2,7 +2,7 @@
 from operator import and_
 
 import json
-from datetime import datetime
+from datetime import datetime, date
 from flask import Flask, render_template, request, json, redirect, url_for
 
 # DB e Users import
@@ -190,7 +190,8 @@ def alchemyencoder(obj):
 def home_page():
     # apertura connessione al DB
     conn = engine.connect()
-    queryFilms = select([film])
+    oggi = date.today()
+    queryFilms = select([film]).where(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi))
     films = conn.execute(queryFilms)
     conn.close()
     if current_user.is_authenticated:
@@ -275,7 +276,8 @@ def revertAcquista(postiAcquistati, idProiezione, lastX, idUtente, idSala):
 @app.route('/acquista', methods=['POST'])
 @login_required
 def acquista():
-    conn = engine.connect()
+    eng = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi', isolation_level='REPEATABLE READ')
+    conn = eng.connect()
     formPostiAcquistati = (request.form['posti'])
     # convert dictionary string to dictionary
     postiAcquistati = json.loads(formPostiAcquistati)
