@@ -28,26 +28,39 @@
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
-    <a class="navbar-brand" href="#"><h1 class="font-weight-bold">UCIMG</h1></a>
+            <a class="navbar-brand" href="#"><h1 class="font-weight-bold">UCIMG</h1></a>
+                    <!-- Button LOG OUT -->
+                    <form action="/logout" class="form-singin" method="POST">
+                        <button type="submit" class="btn btn-primary" >
+                            Log Out
+                        </button>
+                    </form>
 </nav>
-
-<div class="btn-group btn-group-toggle" data-toggle="buttons">
-    <label class="btn btn-secondary active" onclick="return show('Page1','Page2');">
-        <input type="radio" name="options" id="option1" checked> Film
-    </label>
-    <label class="btn btn-secondary" onclick="return show('Page2','Page1');">
-        <input type="radio" name="options" id="option2"> Stats
-    </label>
-</div>
-
-<div id="Page1" class="col">
-    <br><br>
-    <div>
+<br><br>
+<div class="row">
+    <div class="col-4"></div>
+    <div class="col">
+        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-secondary active" onclick="return show('Page1','Page2');">
+                <input type="radio" name="options" id="option1" checked> Film
+            </label>
+            <label class="btn btn-secondary" onclick="return show('Page2','Page1');">
+                <input type="radio" name="options" id="option2"> Stats
+            </label>
+        </div>
+        &nbsp;&nbsp;
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary" data-toggle="modal"
                 data-target="#modalInsertFilm">
             Aggiungi Film
         </button>
+    </div>
+</div>
+
+
+<div id="Page1" class="col">
+    <br><br>
+    <div>
         <!-- Modal -->
         <div class="modal fade" id="modalInsertFilm" tabindex="-1"
         aria-labelledby="modalUpdateLabel"
@@ -201,7 +214,7 @@
                     <th scope="row">{{row.idfilm}}</th>
                     <td>{{row.titolo}}</td>
                     <td>{{row.genere}}</td>
-                    <td><p>{{row.trama}}</p></td>
+                    <td><p> {%for x in range(0, 120)%}{{row.trama[x]}}{%endfor%}...</p></td>
                     <td>{{row.is3d}}</td>
                     <td>{{row.datainizio}}</td>
                     <td>{{row.datafine}}</td>
