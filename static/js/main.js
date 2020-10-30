@@ -4,55 +4,57 @@ var emptyDate = 1;
 var emptyTime = 1;
 var movieComplete = 0;
 
-  $('.titlefilm').on('click', function(){
-      movieComplete =0;
-      var movie = { 'title' : $(this).html() }
-      if(lastTitolo != movie['title']) {
-          if(!emptyDate) cleanDropDate();
-          if(!emptyTime) cleanDropTime();
-          emptyDate = 0;
 
-          lastTitolo = movie['title'];
-          document.getElementById("dropdown-title").innerHTML = movie["title"];
-          $.ajax({
-              type: 'POST',
-              url: '/selectday',
-              cache: false,
-              contentType: 'application/json',
-              processData: false,
-              data: JSON.stringify(movie),
-              success: on_request_success,
-              error: on_request_error
-          });
-      }
 
-    function on_request_success(response) {
-        var lenght = 10;
-        var data = ""; var inf=11, sup=inf+9;
-        for (index in response) {
-            if(index >= inf && index <= sup) {
-                if (response.hasOwnProperty(index)) {
-                    data += response[index];
-                    lenght--;
-                }
-            }
-            if(lenght==0) {
-                $('#dayfilm').append('<a class=\"dropdown-item datefilm\" href=\"#\">' + data + '</a>');
-                data = "";
-                inf = sup + 15;
-                sup = inf + 9;
-                lenght = 10;
+$('.titlefilm').on('click', function(){
+  movieComplete =0;
+  var movie = { 'title' : $(this).html() }
+  if(lastTitolo != movie['title']) {
+      if(!emptyDate) cleanDropDate();
+      if(!emptyTime) cleanDropTime();
+      emptyDate = 0;
+
+      lastTitolo = movie['title'];
+      document.getElementById("dropdown-title").innerHTML = movie["title"];
+      $.ajax({
+          type: 'POST',
+          url: '/selectday',
+          cache: false,
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify(movie),
+          success: on_request_success,
+          error: on_request_error
+      });
+  }
+
+function on_request_success(response) {
+    var lenght = 10;
+    var data = ""; var inf=11, sup=inf+9;
+    for (index in response) {
+        if(index >= inf && index <= sup) {
+            if (response.hasOwnProperty(index)) {
+                data += response[index];
+                lenght--;
             }
         }
-        $('#dropdownMenuLinkFilm').click();
-      }
-
-    function on_request_error(r, text_status, error_thrown) {
-        console.debug('error', text_status + ", " + error_thrown + ":\n" + r.responseText);
-
+        if(lenght==0) {
+            $('#dayfilm').append('<a class=\"dropdown-item datefilm\" href=\"#\">' + data + '</a>');
+            data = "";
+            inf = sup + 15;
+            sup = inf + 9;
+            lenght = 10;
+        }
     }
+    $('#dropdownMenuLinkFilm').click();
+  }
 
-  });
+function on_request_error(r, text_status, error_thrown) {
+    console.debug('error', text_status + ", " + error_thrown + ":\n" + r.responseText);
+
+}
+
+});
 
 $(document).on('click', '.datefilm', function() {
     movieComplete = 0;

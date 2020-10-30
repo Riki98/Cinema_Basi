@@ -2,21 +2,7 @@
 
 {% block pagebody %}
 
-<div class="col-4">
-    <div class="row d-flex justify-content-around">
-        <div class="dropdown">
-            <div class="row d-flex justify-content-around">
-                <!-- Button trigger modal LOG OUT -->
-                <form action="/logout" class="form-singin" method="POST">
-                    <button type="submit" class="btn btn-primary">
-                        Log Out
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-</nav>
+{% include 'logout.html' %}
 
     <br><br><br>
     <div class="row">
@@ -33,7 +19,7 @@
         <p class="filmtitle">TITOLO: {{ movie.titolo }} </p>
         <p class="filmtitle">DURATA: {{ movie.durata }} </p>
         <p>Giorno: {{ proiezione.data }} </p>
-        <p>Ora: {{ proiezione.orario }}</p>
+        <p>Ora: {{ proiezione.hour }}:{{ proiezione.minute }}</p>
 
         <select id="numPosti" name="numPosti">
             <option value="1">1</option>
@@ -41,7 +27,7 @@
             <option value="3">3</option>
             <option value="4">4</option>
         </select>
-        <table class="sala table table-bordered table-dark">
+        <table class="sala table table-sm table-bordered table-dark">
 <tr>
     <th></th>
     {% for y in range(1, colonna+1)%}
@@ -56,13 +42,13 @@
         <th style="background-color:gainsboro">
             <b style="color: #2a2a2a">{{string.ascii_uppercase[x]}}</b>
         </th>
+
         {% for y in range(1, colonna+1)%}
 
-        <td class="{{ 'occupato' if False else 'libero' }}" data-numero="{{y}}" data-fila="{{string.ascii_uppercase[x]}}">
-
-        </td>
+        <td class="{{ 'occupato' if posti[x][y] else 'libero'  }}" data-fila="{{string.ascii_uppercase[x]}}" data-numero="{{y}}"> </td>
 
         {% endfor %}
+
     </tr>
    {% endfor %}
         </table>
