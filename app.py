@@ -413,7 +413,7 @@ def admin_page():
 
         conn.close()
 
-        return render_template('admin_logged.html', arrayFilms=queryTakenFilms, stats=stats,
+        return render_template('tabelle_admin/tabella_film.html', arrayFilms=queryTakenFilms, stats=stats,
                                adminLogged=current_user.get_email(), giorni=giorni)
 
 
@@ -662,6 +662,17 @@ def insert_film():
 
     return redirect("/admin")
 
+@app.route("/admin/tabella_film")
+def tabella_film():
+    return render_template("/tabelle_admin/tabella_film.html")
+
+@app.route("/admin/tabella_proiezioni")
+def tabella_proiezioni():
+    return render_template("/tabelle_admin/tabella_proiezioni.html")
+
+@app.route("/admin/tabella_utenti")
+def tabella_utenti():
+    return render_template("/tabelle_admin/tabella_utenti.html")
 
 if __name__ == '__main__':
     app.run(debug=True)
