@@ -378,8 +378,6 @@ def admin_page():
         conn = engine.connect()
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
-
-        # select([film.c.idfilm, film.c.titolo, date.data, select(func.sum(visite)).select_from(proiezione).alias("somma")])
         # somma dei biglietti divisi per film e data
         query = conn.execute("SELECT\
         film.idfilm, film.titolo, date.data, (SELECT SUM(visite) AS somma\
@@ -393,7 +391,6 @@ def admin_page():
         (SELECT DISTINCT proiezione.data FROM proiezione) AS date ORDER BY\
         film.idfilm, date.data\
         ")
-        # print(query)
         # query di divisione dei giorni per ogni proiezione
         giorni = conn.execute(select([distinct(proiezione.c.data)]).order_by(proiezione.c.data)).fetchall()
 
@@ -410,9 +407,7 @@ def admin_page():
 
         stats = json.dumps([dato.__dict__ for dato in array])
         giorni = json.dumps([giorno[0].strftime('%m/%d/%Y') for giorno in giorni])
-
         conn.close()
-
         return render_template('tabelle_admin/tabella_film.html', arrayFilms=queryTakenFilms, stats=stats,
                                adminLogged=current_user.get_email(), giorni=giorni)
 
@@ -669,6 +664,10 @@ def tabella_proiezioni():
 @app.route("/admin/tabella_utenti")
 def tabella_utenti():
     return render_template("/tabelle_admin/tabella_utenti.html")
+
+@app.route("/debug")
+def debug():
+    return render_template("/admin_logged.html")
 
 if __name__ == '__main__':
     app.run(debug=True)
