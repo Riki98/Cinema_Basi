@@ -385,38 +385,9 @@ def admin_page():
         conn = engine.connect()
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
-        # somma dei biglietti divisi per film e data
-        query = conn.execute("SELECT\
-        film.idfilm, film.titolo, date.data, (SELECT SUM(visite) AS somma\
-        FROM proiezione LEFT JOIN(\
-            (SELECT COUNT(*) AS visite, biglietto.idproiezione\
-        FROM biglietto GROUP BY\
-        idproiezione)) AS visitatori ON\
-        proiezione.idproiezione = visitatori.idproiezione WHERE\
-        proiezione.idfilm = film.idfilm AND proiezione.data = date.data)\
-        FROM film,\
-        (SELECT DISTINCT proiezione.data FROM proiezione) AS date ORDER BY\
-        film.idfilm, date.data\
-        ")
-        # query di divisione dei giorni per ogni proiezione
-        giorni = conn.execute(select([distinct(proiezione.c.data)]).order_by(proiezione.c.data)).fetchall()
-
-        array = []
-        lastId = -1
-        for row in query:
-            if (row.idfilm > lastId):
-                d = Dato(row.idfilm, row.titolo)
-                d.add(row.somma)
-                array.append(d)
-                lastId = row.idfilm
-            else:
-                (array[len(array) - 1]).add(row.somma)
-
-        stats = json.dumps([dato.__dict__ for dato in array])
-        giorni = json.dumps([giorno[0].strftime('%m/%d/%Y') for giorno in giorni])
         conn.close()
-        return render_template('admin_pages/tabelle_admin/tabella_film.html', arrayFilms=queryTakenFilms, stats=stats,
-                               adminLogged=current_user.get_email(), giorni=giorni)
+        return render_template('admin_pages/tabelle_admin/tabella_film.html', arrayFilms=queryTakenFilms,
+                               adminLogged=current_user.get_email())
 
 
 @app.route("/ticket_sold", methods=['GET'])

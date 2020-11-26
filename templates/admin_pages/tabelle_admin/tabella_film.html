@@ -1,58 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-            crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-            crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/js/apex/apexcharts.css">
-    <script src="{{ url_for('static', filename='js/apex/apexcharts.js') }}"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+{% extends "admin_pages/base_admin.html" %}
 
-    <title>{{adminLogged}}</title>
-</head>
-<body>
-<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-    <a class="navbar-brand" href="#"><h1 class="font-weight-bold">UCIMG</h1></a>
-    <div class="navbar-collapse">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <div class="dropdown">
-                    <button class="btn btn-secondary">Tabelle</button>
-                    <div class="dropdown-content">
-                        <a href="{{url_for('admin_page')}}">Film</a>
-                        <a href="{{url_for('tabella_proiezioni')}}">Proiezioni</a>
-                        <a href="{{url_for('tabella_utenti')}}">Utenti</a>
-                    </div>
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="dropdown">
-                    <button class="btn btn-secondary">Statistiche</button>
-                    <div class="dropdown-content">
-                        <a href="{{url_for('ticket_sold')}}">Stat1</a>
-                        <a href="#">Stat2</a>
-                        <a href="#">Stat3</a>
-                    </div>
-                </div>
-            </li>
-        </ul>
-    </div>
-    <!-- Button LOG OUT -->
-    <form action="/logout" class="form-singin" method="POST">
-        <button type="submit" class="btn btn-primary">
-            Log Out
-        </button>
-    </form>
-</nav>
+{% block pagebody %}
 
 <br><br>
 <button type="button" class="btn btn-primary" data-toggle="modal"
@@ -67,7 +15,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalInsertFilmLabel">Modifica film</h5>
+                    <h5 class="modal-title" id="modalInsertFilmLabel">Aggiungi film</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -372,23 +320,4 @@
 <br><br>
 <br><br>
 
-<footer class="site-footer" role="contentinfo">
-    <div class="card-footer mt-auto row">
-        <div class="col-3">
-            <h2 class="font-weight-bold">UCIMG</h2>
-            <p class="text-justify textwhilefont">
-                Via PlutoPaperino
-            </p>
-        </div>
-        <div class="col-6"></div>
-        <div class="col-3">
-            <h2>Contatti</h2>
-            <p class="text-justify textwhilefont">
-                info@ucimg.it
-            </p>
-        </div>
-    </div>
-</footer>
-
-</body>
-</html>
+{% endblock %}
