@@ -469,24 +469,7 @@ def logout():
     return redirect("/")
 
 
-@app.route('/film/unpublish/<idFilm>', methods=['GET'])
-@login_required
-def cancellazione(idFilm):
-    conn = engine.connect()
-    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 0})
-    conn.execute(queryDelete, {'filmTaken': idFilm})
-    conn.close()
-    return redirect("/admin")
-
-
-@app.route('/film/publish/<idFilm>', methods=['GET'])
-@login_required
-def ripubblicazione(idFilm):
-    conn = engine.connect()
-    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 1})
-    conn.execute(queryDelete, {'filmTaken': idFilm})
-    conn.close()
-    return redirect("/admin")
+##################################### GESTIONE TABELLA FILM ############################################
 
 
 @app.route('/film/update/<idFilm>', methods=['GET', 'POST'])
@@ -508,7 +491,7 @@ def updateFilm(idFilm):
     inputYearPubb = request.form["inputYear" + idFilm]
     if request.form["inputVM" + idFilm] == 'True':
         inputMinAge = True
-        print("FALZO")
+        print("FALSO")
     else:
         inputMinAge = False
         print("VERO")
@@ -534,19 +517,6 @@ def updateFilm(idFilm):
                  newInputYear=inputYearPubb, newInputVm=inputMinAge)
     conn.close()
     return redirect("/admin")
-
-
-def stats():
-    conn = engine.connect()
-    queryTicketsSold = select([])
-    # biglietti per mese
-    # select proiezione.idfilm, proiezione.data, sum(visite) from proiezione LEFT JOIN (
-
-    # select idproiezione, count(*) as visite from biglietto group by idproiezione) as visitatori
-    # ON proiezione.idproiezione = visitatori.idproiezione group by proiezione.idfilm, proiezione.data
-    # genere più visto nel tempo
-    # numero posti prenotati su posti disponibili
-    # film più guardato
 
 
 @app.route('/film/insert', methods=['GET', 'POST'])
@@ -668,9 +638,84 @@ def insert_film():
     return redirect("/admin")
 
 
+@app.route('/film/unpublish/<idFilm>', methods=['GET'])
+@login_required
+def cancellazionePubblicazioneFilm(idFilm):
+    conn = engine.connect()
+    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 0})
+    conn.execute(queryDelete, {'filmTaken': idFilm})
+    conn.close()
+    return redirect("/admin")
+
+
+@app.route('/film/publish/<idFilm>', methods=['GET'])
+@login_required
+def ripubblicazione(idFilm):
+    conn = engine.connect()
+    queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 1})
+    conn.execute(queryDelete, {'filmTaken': idFilm})
+    conn.close()
+    return redirect("/admin")
+
+
+############################################# GESTIONE TABELLA SALA ##############################################
+
 @app.route("/admin/tabella_proiezioni")
 def tabella_proiezioni():
-    return render_template("admin_pages/tabelle_admin/tabella_proiezioni.html")
+    if current_user.role == 0:
+        return redirect("/")
+    else:
+        print("admin_page " + current_user.email)
+        conn = engine.connect()
+        # takenScreening = "SELECT proiezione.idFilm, proiezione.idSala, proiezione.data, proiezione.orario, film.titolo" \
+        #                 "FROM proiezione, films" \
+        #                 "WHERE proiezione.idFilm = film.idFilm AND film.idFilm = film.titolo" \
+        #                 "ORDER BY idFilm"
+        queryTakenScreening = conn.execute(
+            "SELECT proiezione.idProiezione, proiezione.idFilm, proiezione.idSala, proiezione.data, proiezione.orario, film.titolo FROM proiezione, film WHERE proiezione.idFilm = film.idFilm ORDER BY idFilm").fetchall()
+        conn.close()
+        print(queryTakenScreening)
+        return render_template('admin_pages/tabelle_admin/tabella_proiezioni.html', arrayScreening=queryTakenScreening,
+                               adminLogged=current_user.get_email())
+
+
+@app.route('/proiezione/update/<idProiezione>', methods=['GET', 'POST'])
+@login_required
+def updateScreening(idProiezione):
+    print("updateScreening")
+    inputRoom = request.form["inputRoom" + idProiezione]
+    print(inputRoom)
+    inputDay = request.form["inputDay" + idProiezione]
+    print("updateScreening")
+    inputTime = request.form["inputTime" + idProiezione]
+    print(inputTime)
+    eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
+                        isolation_level='REPEATABLE READ')
+    conn = eng.connect()
+    queryUpdate = update(proiezione).\
+        where(proiezione.c.idproiezione == bindparam("expectedScreening")).values(idsala=bindparam("newInputRoom"),
+                                                                                  data=bindparam("newInputDay"),
+                                                                                  orario=bindparam("newInputTime"))
+    print(queryUpdate)
+    conn.execute(queryUpdate, expectedScreening=idProiezione, newInputRoom=inputRoom, newInputDay=inputDay, newInputTime=inputTime)
+    conn.close()
+    print("closed")
+    return redirect("/admin/tabella_proiezioni")
+
+
+@app.route('/proiezione/delete/<idProiezione>', methods=['GET'])
+@login_required
+def cancellazioneProiezione(idProiezione):
+    eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
+                        isolation_level='REPEATABLE READ')
+    conn = eng.connect()
+    queryDelete = film.delete().where(proiezione.c.idproiezione == bindparam("screeningTaken"))
+    conn.execute(queryDelete, {'screeningTaken': idProiezione})
+    conn.close()
+    return redirect("/admin/tabella_proiezioni")
+
+
+############################################# GESTIONE TABELLA UTENTI ##############################################
 
 
 @app.route("/admin/tabella_utenti")

@@ -1,73 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-            crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-            crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/js/apex/apexcharts.css">
-    <script src="{{ url_for('static', filename='js/apex/apexcharts.js') }}"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+{% extends "admin_pages/base_admin.html" %}
 
-    <title>{{adminLogged}}</title>
-</head>
-<body>
-<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-    <a class="navbar-brand" href="#"><h1 class="font-weight-bold">UCIMG</h1></a>
-    <div class="navbar-collapse">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <div class="dropdown">
-                    <button class="btn btn-secondary">Tabelle</button>
-                    <div class="dropdown-content">
-                        <a href="{{url_for('admin_page')}}">Film</a>
-                        <a href="{{url_for('tabella_proiezioni')}}">Proiezioni</a>
-                        <a href="{{url_for('tabella_utenti')}}">Utenti</a>
-                    </div>
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="dropdown">
-                    <button class="btn btn-secondary">Statistiche</button>
-                    <div class="dropdown-content">
-                        <a href="{{url_for('admin_page')}}">Stat1</a>
-                        <a href="#">Stat2</a>
-                        <a href="#">Stat3</a>
-                    </div>
-                </div>
-            </li>
-        </ul>
-    </div>
-    <!-- Button LOG OUT -->
-    <form action="/logout" class="form-singin" method="POST">
-        <button type="submit" class="btn btn-primary">
-            Log Out
-        </button>
-    </form>
-</nav>
+{% block pagebody %}
 
 <br><br>
 <button type="button" class="btn btn-primary" data-toggle="modal"
-        data-target="#modalInsertFilm">
-    Aggiungi Film
+        data-target="#modalInsertScreening">
+    Aggiungi Proiezione
 </button>
 <div>
     <!-- Modal -->
-    <div class="modal fade" id="modalInsertFilm" tabindex="-1"
+    <div class="modal fade" id="modalInsertScreening" tabindex="-1"
          aria-labelledby="modalUpdateLabel"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalInsertFilmLabel">Modifica film</h5>
+                    <h5 class="modal-title" id="modalInsertScreeningLabel">Aggiungi Proiezione</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -200,150 +148,69 @@
             <tr>
                 <th scope="col">#</th>
                 <th scope="col">Titolo</th>
-                <th scope="col">Genere</th>
-                <th scope="col">Trama</th>
-                <th scope="col">3D</th>
-                <th scope="col">Data Inizio</th>
-                <th scope="col">Data Fine</th>
-                <th scope="col">Durata</th>
-                <th scope="col">Paese</th>
-                <th scope="col">Anno</th>
-                <th scope="col"><14</th>
-                <th scope="col">Pubblicazione</th>
+                <th scope="col">Sala</th>
+                <th scope="col">Giorno</th>
+                <th scope="col">Ora</th>
                 <th scope="col">Modifica</th>
+                <th scope="col">Elimina</th>
             </tr>
             </thead>
             <tbody>
-            {% for row in arrayFilms %}
+            {% for row in arrayScreening %}
             <tr>
                 <th scope="row">{{row.idfilm}}</th>
                 <td>{{row.titolo}}</td>
-                <td>{{row.genere}}</td>
-                <td><p> {%for x in range(0, 120)%}{{row.trama[x]}}{%endfor%}...</p></td>
-                <td>{{row.is3d}}</td>
-                <td>{{row.datainizio}}</td>
-                <td>{{row.datafine}}</td>
-                <td>{{row.durata}}</td>
-                <td>{{row.paese}}</td>
-                <td>{{row.anno}}</td>
-                <td>{%if row.vm == 1%} True {% else %} False {% endif %}</td>
-                <td>{% if row.shown == 1 %}
-                    <a href="/film/unpublish/{{row.idfilm}}">Unpublish</a>
-                    {% else %}
-                    <a href="/film/publish/{{row.idfilm}}">Publish</a>
-                    {% endif %}
-                </td>
+                <td>{{row.idsala}}</td>
+                <td>{{row.data}}</td>
+                <td>{{row.orario}}</td>
                 <td>
                     <!-- Button trigger modal -->
                     <button type="button" class="btn btn-primary" data-toggle="modal"
-                            data-target="#modalUpdate{{row.idfilm}}">
+                            data-target="#modalUpdate{{row.idproiezione}}">
                         Update
                     </button>
 
                     <!-- Modal -->
-                    <div class="modal fade" id="modalUpdate{{row.idfilm}}" tabindex="-1"
+                    <div class="modal fade" id="modalUpdate{{row.idproiezione}}" tabindex="-1"
                          aria-labelledby="modalUpdateLabel"
                          aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modalUpdateLabel">Modifica film</h5>
+                                    <h5 class="modal-title" id="modalUpdateLabel">{{row.titolo}}</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <form action="/film/update/{{row.idfilm}}" method="POST" class="form-signup">
+                                    <form action="{{url_for('updateScreening', idProiezione=row.idproiezione)}}" method="POST"
+                                          class="form-signup">
                                         <div class="row">
                                             <div class="col-1"></div>
                                             <div class="col">
                                                 <div class="form-row">
                                                     <div class="form-group col-md-6">
-                                                        <label for="inputTitle{{row.idfilm}}">Titolo</label>
-                                                        <input name="inputTitle{{row.idfilm}}" type="text"
+                                                        <label for="inputRoom{{row.idproiezione}}">Sala</label>
+                                                        <input name="inputRoom{{row.idproiezione}}" type="text"
                                                                class="form-control"
-                                                               id="inputTitle{{row.idfilm}}" value="{{row.titolo}}">
-                                                    </div>
-
-                                                    <div class="form-group col-md-6">
-                                                        <label for="inputGenre{{row.idfilm}}">Genere</label>
-                                                        <input name="inputGenre{{row.idfilm}}" type="text"
-                                                               class="form-control"
-                                                               id="inputGenre{{row.idfilm}}" value="{{row.genere}}">
+                                                               id="inputRoom{{row.idproiezione}}"
+                                                               value="{{row.idsala}}">
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="inputPlot{{row.idfilm}}">Trama</label>
-                                                    <input name="inputPlot{{row.idfilm}}" type="text"
+                                                <div class="form-row">
+                                                    <label for="inputDay{{row.idproiezione}}">Giorno</label>
+                                                    <input name="inputDay{{row.idproiezione}}" type="text"
                                                            class="form-control"
-                                                           id="inputPlot{{row.idfilm}}" value="{{row.trama}}">
+                                                           id="inputDay{{row.idproiezione}}"
+                                                           value="{{row.data}}">
                                                 </div>
                                                 <div class="form-row">
                                                     <div class="form-group col-md-6">
-                                                        <label for="input3d{{row.idfilm}}">3D</label>
-                                                        <select name="input3d{{row.idfilm}}"
-                                                                id="input3d{{row.idfilm}}" class="form-control">
-                                                            <option value="False">No</option>
-                                                            <option value="True"
-                                                                    {%if row.is3d %}
-                                                                    selected
-                                                                    {%endif%}>Si
-                                                            </option>
-
-                                                        </select>
-                                                    </div>
-                                                    <div class="form-group col-md-6">
-                                                        <label for="inputVM{{row.idfilm}}"><14</label>
-                                                        <select name="inputVM{{row.idfilm}}"
-                                                                id="inputVM{{row.idfilm}}" class="form-control">
-                                                            <option value="False">No</option>
-                                                            <option value="True"
-                                                                    {%if row.vm %}
-                                                                    selected
-                                                                    {%endif%}>Si
-                                                            </option>
-
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="form-row">
-                                                    <div class="form-group col-md-6">
-                                                        <label for="inputStartDate{{row.idfilm}}">Data
-                                                            Inizio</label>
-                                                        <input name="inputStartDate{{row.idfilm}}" type="text"
+                                                        <label for="inputTime{{row.idproiezione}}">Ora</label>
+                                                        <input name="inputTime{{row.idproiezione}}" type="text"
                                                                class="form-control"
-                                                               id="inputStartDate{{row.idfilm}}"
-                                                               value="{{row.datainizio}}">
-                                                    </div>
-
-                                                    <div class="form-group col-md-6">
-                                                        <label for="inputEndDate{{row.idfilm}}">Data Fine</label>
-                                                        <input name="inputEndDate{{row.idfilm}}" type="text"
-                                                               class="form-control"
-                                                               id="inputEndDate{{row.idfilm}}"
-                                                               value="{{row.datafine}}">
-                                                    </div>
-                                                </div>
-                                                <div class="form-row">
-                                                    <div class="form-group col-md-4">
-                                                        <label for="inputCountry{{row.idfilm}}">Paese</label>
-                                                        <input name="inputCountry{{row.idfilm}}" type="text"
-                                                               class="form-control"
-                                                               id="inputCountry{{row.idfilm}}"
-                                                               value="{{row.paese}}">
-                                                    </div>
-                                                    <div class="form-group col-md-4">
-                                                        <label for="inputYear{{row.idfilm}}">Anno</label>
-                                                        <input name="inputYear{{row.idfilm}}" type="text"
-                                                               class="form-control"
-                                                               id="inputYear{{row.idfilm}}" value="{{row.anno}}">
-                                                    </div>
-                                                    <div class="form-group col-md-4">
-                                                        <label for="inputDuration{{row.idfilm}}">Durata</label>
-                                                        <input name="inputDuration{{row.idfilm}}" type="text"
-                                                               class="form-control"
-                                                               id="inputDuration{{row.idfilm}}"
-                                                               value="{{row.durata}}">
+                                                               id="inputTime{{row.idproiezione}}"
+                                                               value="{{row.orario}}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -360,6 +227,7 @@
                         </div>
                     </div>
                 </td>
+                <td><a href="/proiezione/delete/{{row.idproiezione}}">Elimina</a></td>
                 {% endfor %}
             </tbody>
         </table>
@@ -372,23 +240,4 @@
 <br><br>
 <br><br>
 
-<footer class="site-footer" role="contentinfo">
-    <div class="card-footer mt-auto row">
-        <div class="col-3">
-            <h2 class="font-weight-bold">UCIMG</h2>
-            <p class="text-justify textwhilefont">
-                Via PlutoPaperino
-            </p>
-        </div>
-        <div class="col-6"></div>
-        <div class="col-3">
-            <h2>Contatti</h2>
-            <p class="text-justify textwhilefont">
-                info@ucimg.it
-            </p>
-        </div>
-    </div>
-</footer>
-
-</body>
-</html>
+{% endblock %}
