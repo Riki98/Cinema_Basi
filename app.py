@@ -93,19 +93,19 @@ posto = Table('posto', metadata,
               )
 
 biglietto = Table('biglietto', metadata,
-                  Column('idposto', Integer, ForeignKey(posto.c.idposto)),
-                  Column('idproiezione', Integer, ForeignKey(proiezione.c.idproiezione)),
-                  Column('idutente', Integer, ForeignKey(utente.c.idutente))
+                  Column('idposto', Integer, ForeignKey(posto.c.idposto, ondelete='CASCADE')),
+                  Column('idproiezione', Integer, ForeignKey(proiezione.c.idproiezione, ondelete='CASCADE')),
+                  Column('idutente', Integer, ForeignKey(utente.c.idutente, ondelete='CASCADE'))
                   )
 
 attorefilm = Table('attorefilm', metadata,
-                   Column('idpersona', Integer, ForeignKey(persona.c.idpersona)),
+                   Column('idpersona', Integer, ForeignKey(persona.c.idpersona, ondelete='CASCADE')),
                    Column('idfilm', Integer, ForeignKey(film.c.idfilm))
                    )
 
 registafilm = Table('registafilm', metadata,
-                    Column('idpersona', Integer, ForeignKey(persona.c.idpersona)),
-                    Column('idfilm', Integer, ForeignKey(film.c.idfilm))
+                    Column('idpersona', Integer, ForeignKey(persona.c.idpersona, ondelete='CASCADE')),
+                    Column('idfilm', Integer, ForeignKey(film.c.idfilm, ondelete='CASCADE'))
                     )
 
 metadata.create_all(engine)
@@ -667,12 +667,10 @@ def tabella_proiezioni():
     else:
         print("admin_page " + current_user.email)
         conn = engine.connect()
-        # takenScreening = "SELECT proiezione.idFilm, proiezione.idSala, proiezione.data, proiezione.orario, film.titolo" \
-        #                 "FROM proiezione, films" \
-        #                 "WHERE proiezione.idFilm = film.idFilm AND film.idFilm = film.titolo" \
-        #                 "ORDER BY idFilm"
-        queryTakenScreening = conn.execute(
-            "SELECT proiezione.idProiezione, proiezione.idFilm, proiezione.idSala, proiezione.data, proiezione.orario, film.titolo FROM proiezione, film WHERE proiezione.idFilm = film.idFilm ORDER BY idFilm").fetchall()
+        takenScreening = select([proiezione.c.idproiezione, proiezione.c.idfilm, proiezione.c.idsala, proiezione.c.data,
+                                 proiezione.c.orario, film.c.titolo]).where(
+                                 proiezione.c.idfilm == film.c.idfilm).order_by(asc(proiezione.c.idproiezione))
+        queryTakenScreening = conn.execute(takenScreening).fetchall()
         conn.close()
         print(queryTakenScreening)
         return render_template('admin_pages/tabelle_admin/tabella_proiezioni.html', arrayScreening=queryTakenScreening,
@@ -682,34 +680,29 @@ def tabella_proiezioni():
 @app.route('/proiezione/update/<idProiezione>', methods=['GET', 'POST'])
 @login_required
 def updateScreening(idProiezione):
-    print("updateScreening")
     inputRoom = request.form["inputRoom" + idProiezione]
-    print(inputRoom)
     inputDay = request.form["inputDay" + idProiezione]
-    print("updateScreening")
     inputTime = request.form["inputTime" + idProiezione]
-    print(inputTime)
     eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
-    queryUpdate = update(proiezione).\
+    queryUpdate = update(proiezione). \
         where(proiezione.c.idproiezione == bindparam("expectedScreening")).values(idsala=bindparam("newInputRoom"),
                                                                                   data=bindparam("newInputDay"),
                                                                                   orario=bindparam("newInputTime"))
-    print(queryUpdate)
-    conn.execute(queryUpdate, expectedScreening=idProiezione, newInputRoom=inputRoom, newInputDay=inputDay, newInputTime=inputTime)
+    conn.execute(queryUpdate, expectedScreening=idProiezione, newInputRoom=inputRoom, newInputDay=inputDay,
+                 newInputTime=inputTime)
     conn.close()
-    print("closed")
     return redirect("/admin/tabella_proiezioni")
 
-
+### DA FINIRE/CANCELLARE
 @app.route('/proiezione/delete/<idProiezione>', methods=['GET'])
 @login_required
 def cancellazioneProiezione(idProiezione):
     eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
-    queryDelete = film.delete().where(proiezione.c.idproiezione == bindparam("screeningTaken"))
+    queryDelete = film.delete_cascade().where(proiezione.c.idproiezione == bindparam("screeningTaken"))
     conn.execute(queryDelete, {'screeningTaken': idProiezione})
     conn.close()
     return redirect("/admin/tabella_proiezioni")
@@ -720,7 +713,25 @@ def cancellazioneProiezione(idProiezione):
 
 @app.route("/admin/tabella_utenti")
 def tabella_utenti():
-    return render_template("admin_pages/tabelle_admin/tabella_utenti.html")
+    if current_user.role == 0:
+        return redirect("/")
+    else:
+        print("admin_page " + current_user.email)
+        conn = engine.connect()
+        takenUsers = select([utente]).order_by(asc(utente.c.idutente))
+        queryTakenUsers = conn.execute(takenUsers).fetchall()
+        conn.close()
+        print(queryTakenUsers)
+        return render_template('admin_pages/tabelle_admin/tabella_utenti.html', arrayUsers=queryTakenUsers,
+                               adminLogged=current_user.get_email())
+
+@app.route('/utente/grant/<idUtente>')
+def rendi_amdin():
+    if current_user.role == 0:
+        return redirect("/")
+    else:
+        print("update utente")
+        #### rendere un utente admin
 
 
 @app.route("/debug")
