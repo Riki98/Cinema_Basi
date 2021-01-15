@@ -30,7 +30,7 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi')
+engine = create_engine('postgres+psycopg2://postgres:@localhost:5432/CinemaBasi')
 # engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
 
 metadata = MetaData()
@@ -332,11 +332,16 @@ def acquista():
 
 # AREA UTENTE
 @app.route('/areaUtente', methods=['GET', 'POST'])
+@login_required
 def areaUtente():
     conn = engine.connect()
     # queryBigliettiTot = select([posto.fila, posto.numero, proiezione.orario, proiezione.data, film.titolo])\
     #    .select_from(posto.join(biglietto)).select_from(biglietto.join(proiezione)).select_from(proiezione.join(film))\
     #    .where(biglietto.c.idutente == current_user.id)
+    queryUser = select([utente.c.nome, utente.c.cognome, utente.c.email])\
+        .where(utente.c.idutente == current_user.id)
+    userInfo = conn.execute(queryUser).fetchone()
+
     queryBigliettiTot = "select posto.fila, posto.numero, proiezione.orario, proiezione.data, film.titolo " \
                         "from posto inner join biglietto on biglietto.idPosto=posto.idPosto " \
                         "inner join proiezione on proiezione.idProiezione=biglietto.idProiezione " \
@@ -346,7 +351,7 @@ def areaUtente():
     for b in biglietti:
         print(b)
     conn.close()
-    return render_template('areaUtente.html', biglietti=biglietti)
+    return render_template('areaUtente.html', biglietti=biglietti, u=userInfo)
 
 
 # LOGIN
@@ -373,6 +378,27 @@ def login():
             else:
                 return redirect("/admin")
     return render_template('login.html')
+
+# CHANGE PSW
+@app.route('/changePsw', methods=['GET', 'POST']) #ancora non funziona
+@login_required
+def changePsw():
+    conn = engine.connect()
+    form_oldpws = str(request.form['oldpassword'])
+    form_newpws = str(request.form['newpassword'])
+    form_newpws2 = str(request.form['newpassword2'])
+    queryPsw = select([utente.c.password])\
+        .where(utente.c.idutente == current_user.id)
+    userInfo = conn.execute(queryPsw).fetchone()
+    if form_oldpws == userInfo:
+        if form_newpws == form_newpws2:
+            queryUpdate = update([utente.c.password]).set(form_newpws)\
+                        .where(utente.c.idutente == current_user.id)
+            conn.execute(queryUpdate)
+            conn.close()
+            return logout()
+    conn.close()
+    return areaUtente()
 
 
 @app.route('/admin')

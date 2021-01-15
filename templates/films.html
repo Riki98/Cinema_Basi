@@ -14,20 +14,27 @@
                     <!-- work item -->
                     <div class="work-item">
                         <!-- work details image -->
-                        <img class="img-responsive" src="/static/img/Locandine/{{ film.titolo.strip() }}.png"/>
+                        <a {% if current_user.is_authenticated %}
+                            href="/film/{{film.idfilm}}"
+                            {% endif %}>
+                        <img class="img-responsive" src="/static/img/Locandine/{{ film.titolo.strip() }}.png"></a>
+                        <div class="row">
                         <!-- heading -->
                         <h5> <a class="text-center"
                             {% if current_user.is_authenticated %}
                             href="/film/{{film.idfilm}}"
                             {% endif %}>
                             {{ film.titolo }}</a></h5>
-                        &nbsp;&nbsp;
+                        </div>
+                        <div class="row">
                         <!-- brand org -->
-                        <span class="org">{{ film.genere }}</span>
+                        <span>{{ film.genere }}</span>
                         {% if film.is3d %}
                         <b>3D</b>
                         {% endif %}
+                        </div>
                     </div>
+                    <br><br><br>
                 </div>
 
                 {% endfor %}
