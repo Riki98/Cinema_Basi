@@ -380,7 +380,7 @@ def login():
     return render_template('login.html')
 
 # CHANGE PSW
-@app.route('/changePsw', methods=['GET', 'POST']) #ancora non funziona
+@app.route('/changePsw', methods=['GET', 'POST'])
 @login_required
 def changePsw():
     conn = engine.connect()
@@ -391,7 +391,7 @@ def changePsw():
         .where(utente.c.idutente == current_user.id)
     userInfo = conn.execute(queryPsw).fetchone()
     if form_oldpws == userInfo:
-        if form_newpws == form_newpws2:
+        if form_newpws == form_newpws2: #ancora non funziona
             queryUpdate = update([utente.c.password]).set(form_newpws)\
                         .where(utente.c.idutente == current_user.id)
             conn.execute(queryUpdate)
