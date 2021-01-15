@@ -2,143 +2,7 @@
 
 {% block pagebody %}
 
-<br><br>
-<button type="button" class="btn btn-primary" data-toggle="modal"
-        data-target="#modalInsertFilm">
-    Aggiungi Film
-</button>
-<div>
-    <!-- Modal -->
-    <div class="modal fade" id="modalInsertFilm" tabindex="-1"
-         aria-labelledby="modalUpdateLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalInsertFilmLabel">Aggiungi film</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form action="/film/insert" method="POST" class="form-signup">
-                        <div class="row">
-                            <div class="col">
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="newTitle">Titolo</label>
-                                        <input name="newTitle" type="text"
-                                               class="form-control"
-                                               id="newTitle">
-                                    </div>
-
-                                    <div class="form-group col-md-6">
-                                        <label for="newGenre">Genere</label>
-                                        <input name="newGenre" type="text"
-                                               class="form-control"
-                                               id="newGenre">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newPlot">Trama</label>
-                                    <input name="newPlot" type="text"
-                                           class="form-control"
-                                           id="newPlot">
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="is3d">3D</label>
-                                        <select name="is3d"
-                                                id="is3d" class="form-control">
-                                            <option value="False">No</option>
-                                            <option value="True">Si</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="newMinAge"><14</label>
-                                        <select name="newMinAge"
-                                                id="newMinAge" class="form-control">
-                                            <option value="False">No</option>
-                                            <option value="True">Si</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="newStartData">Data Inizio</label>
-                                        <input name="newStartData" type="text"
-                                               class="form-control"
-                                               id="newStartData"
-                                               placeholder="AAAA-MM-GG">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="newLastData">Data Fine</label>
-                                        <input name="newLastData" type="text"
-                                               class="form-control"
-                                               id="newLastData"
-                                               placeholder="AAAA-MM-GG">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-4">
-                                        <label for="newCountry">Paese</label>
-                                        <input name="newCountry" type="text"
-                                               class="form-control"
-                                               id="newCountry">
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                        <label for="newYearPubb">Anno</label>
-                                        <input name="newYearPubb" type="text"
-                                               class="form-control"
-                                               id="newYearPubb">
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                        <label for="newDuration">Durata</label>
-                                        <input name="newDuration" type="text"
-                                               class="form-control"
-                                               id="newDuration"
-                                               placeholder="(In minuti)">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <label>Aggiungere entrambi anche se un attore è anche regista</label>
-                                    <br>
-                                    <div class="form-group col-md-6">
-                                        <label for="newMovDir">Registi</label>
-                                        <input name="newMovDir" type="text"
-                                               class="form-control"
-                                               id="newMovDir"
-                                               placeholder="Nome Cognome, Nome Cognome">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="newActors">Attori</label>
-                                        <input name="newActors" type="text"
-                                               class="form-control"
-                                               id="newActors"
-                                               placeholder="Nome Cognome, Nome Cognome">
-                                    </div>
-                                </div>
-                                <div class="from-row">
-                                    <label for="newImage">Inserisci locandina (420x600)</label>
-                                    <input name="newImage" type="file"
-                                           class="form-control"
-                                           id="newImage">
-                                </div>
-                                <div class="col 1"></div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                Close
-                            </button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<br>
 <br>
 <div class="row">
     <div class="col-1"></div>
@@ -147,45 +11,43 @@
             <thead>
             <tr>
                 <th scope="col">#</th>
-                <th scope="col">Titolo</th>
-                <th scope="col">Genere</th>
-                <th scope="col">Trama</th>
-                <th scope="col">3D</th>
-                <th scope="col">Data Inizio</th>
-                <th scope="col">Data Fine</th>
-                <th scope="col">Durata</th>
-                <th scope="col">Paese</th>
-                <th scope="col">Anno</th>
-                <th scope="col"><14</th>
-                <th scope="col">Pubblicazione</th>
-                <th scope="col">Modifica</th>
+                <th scope="col">Email</th>
+                <th scope="col">Password</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Cognome</th>
+                <th scope="col">Data di Nascita</th>
+                <th scope="col">Sesso</th>
+                <th scope="col">Residenza</th>
+                <th scope="col">Numero Figli</th>
+                <th scope="col">Numero di Telefono</th>
+                <th scope="col">isAdmin</th>
             </tr>
             </thead>
             <tbody>
             {% for row in arrayFilms %}
             <tr>
-                <th scope="row">{{row.idfilm}}</th>
-                <td>{{row.titolo}}</td>
-                <td>{{row.genere}}</td>
-                <td><p> {%for x in range(0, 120)%}{{row.trama[x]}}{%endfor%}...</p></td>
-                <td>{{row.is3d}}</td>
-                <td>{{row.datainizio}}</td>
-                <td>{{row.datafine}}</td>
-                <td>{{row.durata}}</td>
-                <td>{{row.paese}}</td>
-                <td>{{row.anno}}</td>
-                <td>{%if row.vm == 1%} True {% else %} False {% endif %}</td>
-                <td>{% if row.shown == 1 %}
-                    <a href="/film/unpublish/{{row.idfilm}}">Unpublish</a>
-                    {% else %}
-                    <a href="/film/publish/{{row.idfilm}}">Publish</a>
-                    {% endif %}
+                <th scope="row">{{row.idutente}}</th>
+                <td>{{row.email}}</td>
+                <td>{{row.Password}}</td>
+                <td>{{row.nome}}</td>
+                <td>{{row.cognome}}</td>
+                <td>{{row.datanascita}}</td>
+                <td>{{row.sesso}}</td>
+                <td>{{row.numfigli}}</td>
+                <td>{{row.residenza}}</td>
+                <td>{{row.numcell}}</td>
+                <td>{%if row.role %}
+                        Si
+                    {%else%}
+                        No
+                    {%endif%}
                 </td>
+                <!-- Bottone per concessione admin -->
                 <td>
                     <!-- Button trigger modal -->
                     <button type="button" class="btn btn-primary" data-toggle="modal"
-                            data-target="#modalUpdate{{row.idfilm}}">
-                        Update
+                            data-target="#modalUpdate{{row.idutente}}">
+                        Grant
                     </button>
 
                     <!-- Modal -->
@@ -195,13 +57,13 @@
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modalUpdateLabel">Modifica film</h5>
+                                    <h5 class="modal-title" id="modalUpdateLabel">Rendi Admin</h5>
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <form action="/film/update/{{row.idfilm}}" method="POST" class="form-signup">
+                                    <form action="/utente/grant/{{row.idutente}}" method="POST" class="form-signup">
                                         <div class="row">
                                             <div class="col-1"></div>
                                             <div class="col">
@@ -308,7 +170,8 @@
                         </div>
                     </div>
                 </td>
-                {% endfor %}
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>
