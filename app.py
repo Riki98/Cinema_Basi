@@ -389,16 +389,19 @@ def changePsw():
     form_newpws2 = str(request.form['newpassword2'])
     queryPsw = select([utente.c.password])\
         .where(utente.c.idutente == current_user.id)
-    userInfo = conn.execute(queryPsw).fetchone()
-    if form_oldpws == userInfo:
-        if form_newpws == form_newpws2: #ancora non funziona
-            queryUpdate = update([utente.c.password]).set(form_newpws)\
-                        .where(utente.c.idutente == current_user.id)
+    oldPsw = conn.execute(queryPsw).fetchone()[0]
+
+    print(oldPsw)
+    print(form_oldpws)
+    if form_oldpws == oldPsw:
+        if form_newpws == form_newpws2: #adesso funzia però non so farlo con le query del cazzo
+            queryUpdate = "update utente set password ="+form_newpws+" where idutente ="+ str(current_user.id)
+            #update(utente.c.password == form_newpws).where(utente.c.idutente == current_user.id)
             conn.execute(queryUpdate)
             conn.close()
-            return logout()
+            return redirect("/logout")
     conn.close()
-    return areaUtente()
+    return redirect("/areaUtente")
 
 
 @app.route('/admin')
