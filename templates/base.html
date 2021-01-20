@@ -31,20 +31,20 @@
                 <p style="color: azure">Hi {{ current_user.email }}!</p>
                 {% endif %}
             </div>
-                <div class="col-2">
-                    <form action="/" method="POST">
+            <div class="col-2">
+                <form action="/" method="POST">
                     <select name="inputGenere" id="inputGenere" class="form-control" text="genere">
                         <option value="none" selected disabled hidden>
-                          Ricerca per genere
+                            Ricerca per genere
                         </option>
                         {% for genere in availableGeneri %}
-                        <option >{{genere}}</option>
+                        <option>{{genere}}</option>
                         {% endfor %}
                     </select>
-                </div>
-                <div class="col">
-                    <button class="btn-primary" type="submit">Search</button>
-                </div>
+            </div>
+            <div class="col">
+                <button class="btn-primary" type="submit">Search</button>
+            </div>
             </form>
 
 

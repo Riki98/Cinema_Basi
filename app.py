@@ -30,9 +30,9 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engineVisistatore = create_engine('postgres+psycopg2://utentenonloggato:0000@localhost:5432/CinemaBasi')
-engineCliente = create_engine('postgres+psycopg2://clienteloggato:1234@localhost:5432/CinemaBasi')
-engineAdmin = create_engine('postgres+psycopg2://adminloggato:12345678@localhost:5432/CinemaBasi')
+engineVisistatore = create_engine('postgres+psycopg2://visitatore:0000@localhost:5432/CinemaBasi')
+engineCliente = create_engine('postgres+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi')
+engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi')
 
 metadata = MetaData()
 
@@ -49,7 +49,7 @@ film = Table('film', metadata,
              Column('anno', Integer),
              Column('vm', Integer),
              Column('shown', Boolean)#,
-             #Column('img', bytearray)
+             #Column('img', String)
              )
 
 utente = Table('utente', metadata,
@@ -765,7 +765,7 @@ def updateScreening(idProiezione):
 ############################################# GESTIONE TABELLA UTENTI ##############################################
 
 
-@app.route("/admin/tabella_utenti")
+@app.route("/admin/tabella_utenti", methods=['GET', 'POST'])
 def tabella_utenti():
     if current_user.ruolo == 0:
         return redirect("/")
@@ -774,6 +774,11 @@ def tabella_utenti():
         conn = engineAdmin.connect()
         takenUsers = select([utente]).order_by(asc(utente.c.idutente))
         queryTakenUsers = conn.execute(takenUsers).fetchall()
+        try:
+            img = request.form["inputImage"]
+            print(img)
+        except:
+            print("non ce l'ho fatta")
         conn.close()
         print(queryTakenUsers)
         return render_template('admin_pages/tabelle_admin/tabella_utenti.html', arrayUsers=queryTakenUsers,
