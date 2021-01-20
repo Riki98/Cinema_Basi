@@ -16,6 +16,8 @@ from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
+from sqlalchemy.engine import reflection
+
 import string
 
 # TYPE import
@@ -30,8 +32,9 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engine = create_engine('postgres+psycopg2://postgres:@localhost:5432/CinemaBasi')
-# engine = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi')
+engineVisistatore = create_engine('postgres+psycopg2://visitatore:0000@localhost:5432/CinemaBasi')
+engineCliente = create_engine('postgres+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi')
+engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi')
 
 metadata = MetaData()
 
@@ -62,7 +65,7 @@ utente = Table('utente', metadata,
                Column('numfigli', Integer),
                Column('residenza', String),
                Column('numcell', String),
-               Column('role', Integer)
+               Column('ruolo', Integer)
                )
 
 persona = Table('persona', metadata,
@@ -108,7 +111,7 @@ registafilm = Table('registafilm', metadata,
                     Column('idfilm', Integer, ForeignKey(film.c.idfilm, ondelete='CASCADE'))
                     )
 
-metadata.create_all(engine)
+metadata.create_all(engineVisistatore)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -118,10 +121,10 @@ active_users = []
 
 
 class User(UserMixin):
-    def __init__(self, id, email, role):
+    def __init__(self, id, email, ruolo):
         self.id = id
         self.email = email
-        self.role = role
+        self.ruolo = ruolo
 
     def is_authenticated(self):
         return True
@@ -137,8 +140,8 @@ class User(UserMixin):
     def get_id(self):
         return self.id
 
-    def get_role(self):
-        return self.role
+    def get_ruolo(self):
+        return self.ruolo
 
     def get_email(self):
         return self.email
@@ -167,7 +170,7 @@ class Dato:
 
 @login_manager.user_loader
 def load_user(user_id):
-    conn = engine.connect()
+    conn = engineCliente.connect()
     user = conn.execute(select([utente]).where(utente.c.idutente == user_id)).fetchone()
     conn.close()
     if user is None:
@@ -175,9 +178,9 @@ def load_user(user_id):
     else:
         real_id = int(user[1])
         real_email = str(user[0]).strip()
-        real_role = user['role']
+        real_ruolo = user['ruolo']
         print("LoadUser " + real_email)
-        return User(real_id, real_email, real_role)
+        return User(real_id, real_email, real_ruolo)
 
 
 # fun: permette di serializzare i dati per le conversioni json
@@ -194,7 +197,7 @@ def alchemyencoder(obj):
 @app.route('/', methods=['GET'])
 def home_page():
     # apertura connessione al DB
-    conn = engine.connect()
+    conn = engineVisistatore.connect()
     oggi = date.today()
     queryFilms = select([film]).where(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi))
     films = conn.execute(queryFilms)
@@ -208,7 +211,7 @@ def home_page():
 @app.route('/film/<idFilm>', methods=['GET'])
 @login_required
 def base_film(idFilm):
-    conn = engine.connect()
+    conn = engineCliente.connect()
     # query a db per recuperare entità film con id idFilm
     queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(
         film.c.idfilm == bindparam("idFilmRecuperato"))
@@ -226,7 +229,7 @@ def base_film(idFilm):
 @app.route('/prenotazione/<idProiezione>', methods=['GET'])
 @login_required
 def prenotazione(idProiezione):
-    conn = engine.connect()
+    conn = engineCliente.connect()
 
     queryProiezione = select([proiezione]).where(proiezione.c.idproiezione == idProiezione)
     proiezioni = conn.execute(queryProiezione).fetchone()
@@ -263,7 +266,7 @@ def prenotazione(idProiezione):
 
 def revertAcquista(postiAcquistati, idProiezione, lastX, idUtente, idSala):
     delete = biglietto.delete()
-    conn = engine.execute()
+    conn = engineCliente.execute()
     for x in range(0, lastX - 1):
         numero = postiAcquistati[x]['numero']
         fila = postiAcquistati[x]['fila']
@@ -283,7 +286,7 @@ def revertAcquista(postiAcquistati, idProiezione, lastX, idUtente, idSala):
 @app.route('/acquista', methods=['POST'])
 @login_required
 def acquista():
-    eng = create_engine('postgresql+psycopg2://postgres:1599@localhost:5432/cinema_basi',
+    eng = create_engine('postgresql+psycopg2://clienteloggato:1599@localhost:5432/cinema_basi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
     formPostiAcquistati = (request.form['posti'])
@@ -334,7 +337,7 @@ def acquista():
 @app.route('/areaUtente', methods=['GET', 'POST'])
 @login_required
 def areaUtente():
-    conn = engine.connect()
+    conn = engineCliente.connect()
     # queryBigliettiTot = select([posto.fila, posto.numero, proiezione.orario, proiezione.data, film.titolo])\
     #    .select_from(posto.join(biglietto)).select_from(biglietto.join(proiezione)).select_from(proiezione.join(film))\
     #    .where(biglietto.c.idutente == current_user.id)
@@ -357,7 +360,11 @@ def areaUtente():
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    conn = engine.connect()
+
+    metadata.create_all(engineCliente)
+    print("prime")
+    conn = engineCliente.connect()
+    print("cose")
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
@@ -370,12 +377,14 @@ def login():
         else:
             print(utente_log)
 
-            login_user(User(utente_log['idutente'], utente_log['email'], utente_log['role']))  # appoggio a flask_login
+            login_user(User(utente_log['idutente'], utente_log['email'], utente_log['ruolo']))  # appoggio a flask_login
             active_users.append(utente_log)
             print("Logged in successfully.")
-            if int(current_user.get_role()) == 0:
+            if int(current_user.get_ruolo()) == 0:
+
                 return redirect("/")
             else:
+                metadata.create_all(engineAdmin)
                 return redirect("/admin")
     return render_template('login.html')
 
@@ -383,7 +392,7 @@ def login():
 @app.route('/changePsw', methods=['GET', 'POST'])
 @login_required
 def changePsw():
-    conn = engine.connect()
+    conn = engineCliente.connect()
     form_oldpws = str(request.form['oldpassword'])
     form_newpws = str(request.form['newpassword'])
     form_newpws2 = str(request.form['newpassword2'])
@@ -404,11 +413,11 @@ def changePsw():
 @app.route('/admin')
 @login_required
 def admin_page():
-    if current_user.role == 0:
+    if current_user.ruolo == 0:
         return redirect("/")
     else:
         print("admin_page " + current_user.email)
-        conn = engine.connect()
+        conn = engineAdmin.connect()
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
         conn.close()
@@ -418,7 +427,7 @@ def admin_page():
 
 @app.route("/ticket_sold", methods=['GET'])
 def ticket_sold():
-    conn = engine.connect()
+    conn = engineAdmin.connect()
     # query di divisione dei giorni per ogni proiezione
     # somma dei biglietti divisi per film e data
     query = conn.execute("SELECT\
@@ -454,7 +463,7 @@ def ticket_sold():
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    conn = engine.connect()
+    conn = engineVisistatore.connect()
     id = conn.execute(select([func.max(utente.c.idutente)]))
     myid = id.fetchone()[0] + 1
 
@@ -470,6 +479,7 @@ def register():
     sonsreg = request.form["nSonReg"]
     # insert into the db
     insreg = utente.insert()
+    ruoloreg = 0
 
     conn.execute(insreg, [
         {
@@ -477,7 +487,7 @@ def register():
             'password': passwordreg, 'nome': namereg,
             'cognome': surnamereg, 'datanascita': birthreg,
             'sesso': sexreg, 'numfigli': sonsreg,
-            'residenza': addressreg, 'numcell': cellphonereg
+            'residenza': addressreg, 'numcell': cellphonereg, 'ruolo': ruoloreg
         }
 
     ])
@@ -522,7 +532,7 @@ def updateFilm(idFilm):
         inputMinAge = False
         print("VERO")
     print(inputMinAge)
-    eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
+    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
     queryUpdate = update(film). \
@@ -561,7 +571,7 @@ def insert_film():
     newActors = request.form["newActors"]
     newImage = request.form["newImage"]
 
-    conn = engine.connect()
+    conn = engineAdmin.connect()
 
     queruyIdFilmDB = select([func.max(film.c.idfilm)])
     idFilmDBres = conn.execute(queruyIdFilmDB).fetchone()
@@ -667,7 +677,7 @@ def insert_film():
 @app.route('/film/unpublish/<idFilm>', methods=['GET'])
 @login_required
 def cancellazionePubblicazioneFilm(idFilm):
-    conn = engine.connect()
+    conn = engineAdmin.connect()
     queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 0})
     conn.execute(queryDelete, {'filmTaken': idFilm})
     conn.close()
@@ -677,7 +687,7 @@ def cancellazionePubblicazioneFilm(idFilm):
 @app.route('/film/publish/<idFilm>', methods=['GET'])
 @login_required
 def ripubblicazione(idFilm):
-    conn = engine.connect()
+    conn = engineAdmin.connect()
     queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 1})
     conn.execute(queryDelete, {'filmTaken': idFilm})
     conn.close()
@@ -688,11 +698,11 @@ def ripubblicazione(idFilm):
 
 @app.route("/admin/tabella_proiezioni")
 def tabella_proiezioni():
-    if current_user.role == 0:
+    if current_user.ruolo == 0:
         return redirect("/")
     else:
         print("admin_page " + current_user.email)
-        conn = engine.connect()
+        conn = engineAdmin.connect()
         takenScreening = select([proiezione.c.idproiezione, proiezione.c.idfilm, proiezione.c.idsala, proiezione.c.data,
                                  proiezione.c.orario, film.c.titolo]).where(
                                  proiezione.c.idfilm == film.c.idfilm).order_by(asc(proiezione.c.idproiezione))
@@ -709,7 +719,7 @@ def updateScreening(idProiezione):
     inputRoom = request.form["inputRoom" + idProiezione]
     inputDay = request.form["inputDay" + idProiezione]
     inputTime = request.form["inputTime" + idProiezione]
-    eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
+    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
     queryUpdate = update(proiezione). \
@@ -725,7 +735,7 @@ def updateScreening(idProiezione):
 @app.route('/proiezione/delete/<idProiezione>', methods=['GET'])
 @login_required
 def cancellazioneProiezione(idProiezione):
-    eng = create_engine('postgres+psycopg2://postgres:12358@localhost:5432/CinemaBasi',
+    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
     queryDelete = film.delete_cascade().where(proiezione.c.idproiezione == bindparam("screeningTaken"))
@@ -739,11 +749,11 @@ def cancellazioneProiezione(idProiezione):
 
 @app.route("/admin/tabella_utenti")
 def tabella_utenti():
-    if current_user.role == 0:
+    if current_user.ruolo == 0:
         return redirect("/")
     else:
         print("admin_page " + current_user.email)
-        conn = engine.connect()
+        conn = engineAdmin.connect()
         takenUsers = select([utente]).order_by(asc(utente.c.idutente))
         queryTakenUsers = conn.execute(takenUsers).fetchall()
         conn.close()
@@ -751,13 +761,23 @@ def tabella_utenti():
         return render_template('admin_pages/tabelle_admin/tabella_utenti.html', arrayUsers=queryTakenUsers,
                                adminLogged=current_user.get_email())
 
-@app.route('/utente/grant/<idUtente>')
-def rendi_amdin():
-    if current_user.role == 0:
+@app.route('/admin/grant/<idUtente>', methods=['GET', 'POST'])
+def rendi_admin(idUtente):
+    if current_user.ruolo == 0:
         return redirect("/")
     else:
         print("update utente")
         #### rendere un utente admin
+        eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
+                            isolation_level='REPEATABLE READ')
+        conn = eng.connect()
+        inputMail = request.form["inputMail" + idUtente]
+        inputPassword = request.form["inputPassword" + idUtente]
+        queryDelete = film.update(utente). \
+            where(utente.c.idutente == bindparam("userTaken")).values(email=bindparam("newEmail"), password=bindparam("newPassword"), ruolo=bindparam("newAdminSelected"))
+        conn.execute(queryDelete, {'userTaken': idUtente}, {'newEmail': inputMail}, {'newPassword': inputPassword}, {'newAdminSelected': 1})
+        conn.close()
+        return redirect("/admin/tabella_proiezioni")
 
 
 @app.route("/debug")
