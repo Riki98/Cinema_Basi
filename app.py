@@ -201,7 +201,7 @@ def home_page():
     oggi = date.today()
     inputGenere = None
     try:
-        inputGenere = str(request.form["inputGenere"])
+        inputGenere = request.form["inputGenere"]
     except:
         print("nessun genere selezionato")
     print(inputGenere)
