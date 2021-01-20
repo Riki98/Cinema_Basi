@@ -194,18 +194,47 @@ def alchemyencoder(obj):
 
 
 # render alla pagina principale
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET', 'POST'])
 def home_page():
     # apertura connessione al DB
     conn = engineVisistatore.connect()
     oggi = date.today()
-    queryFilms = select([film]).where(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi))
-    films = conn.execute(queryFilms)
+    inputGenere = None
+    try:
+        inputGenere = str(request.form["inputGenere"])
+    except:
+        print("nessun genere selezionato")
+    print(inputGenere)
+    #form_genere = str(request.form['mailLogin'])
+
+
+
+    queryGeneri = select([film.c.genere])
+    genere = conn.execute(queryGeneri).fetchall()
+    array = []
+
+    for g in genere:
+        temp = g[0].split(', ')
+        for t in temp:
+            array.append(t)
+    array = set(array)
+    print(array)
+
+    if inputGenere == None:
+        queryFilms = select([film]).where(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi))
+        films = conn.execute(queryFilms)
+    else :
+        queryFilms = select([film]).where(and_(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi), film.c.genere==bindparam["expectedGenere"]))
+        films = conn.execute(queryFilms, expectedGenere=inputGenere)
+
+
     conn.close()
+
     if current_user.is_authenticated:
-        return render_template('login.html', movies=films)  # stessa pagina rimossa dei btn log in e register
+        return render_template('login.html', movies=films, generi=array)  # stessa pagina rimossa dei btn log in e register
     else:
-        return render_template('index.html', movies=films)
+        return render_template('index.html', movies=films, generi=array)
+
 
 
 @app.route('/film/<idFilm>', methods=['GET'])
@@ -734,17 +763,6 @@ def updateScreening(idProiezione):
     conn.close()
     return redirect("/admin/tabella_proiezioni")
 
-### DA FINIRE/CANCELLARE
-@app.route('/proiezione/delete/<idProiezione>', methods=['GET'])
-@login_required
-def cancellazioneProiezione(idProiezione):
-    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
-                        isolation_level='REPEATABLE READ')
-    conn = eng.connect()
-    queryDelete = film.delete_cascade().where(proiezione.c.idproiezione == bindparam("screeningTaken"))
-    conn.execute(queryDelete, {'screeningTaken': idProiezione})
-    conn.close()
-    return redirect("/admin/tabella_proiezioni")
 
 
 ############################################# GESTIONE TABELLA UTENTI ##############################################
@@ -776,11 +794,14 @@ def rendi_admin(idUtente):
         conn = eng.connect()
         inputMail = request.form["inputMail" + idUtente]
         inputPassword = request.form["inputPassword" + idUtente]
-        queryDelete = film.update(utente). \
+        #queryUpdate = "update utente set password ="+form_newpws+" where idutente ="+ str(current_user.id)
+        queryUpdate = update(utente). \
             where(utente.c.idutente == bindparam("userTaken")).values(email=bindparam("newEmail"), password=bindparam("newPassword"), ruolo=bindparam("newAdminSelected"))
-        conn.execute(queryDelete, {'userTaken': idUtente}, {'newEmail': inputMail}, {'newPassword': inputPassword}, {'newAdminSelected': 1})
+        conn.execute(queryUpdate, userTaken=idUtente, newEmail=inputMail, newPassword=inputPassword, newAdminSelected=1)
         conn.close()
-        return redirect("/admin/tabella_proiezioni")
+        return redirect("/admin/tabella_utente")
+
+
 
 
 @app.route("/debug")

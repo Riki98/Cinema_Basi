@@ -21,42 +21,56 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark">
-        <a class="navbar-brand" href="/"><h1 class="font-weight-bold">UCIMG</h1></a>
+<nav class="navbar navbar-dark bg-dark">
+    <a class="navbar-brand" href="/"><h1 class="font-weight-bold">UCIMG</h1></a>
 
-        <div class="navbar-collapse">
-            <div class="row">
-                <div class="col">
-                    {% if current_user.is_authenticated %}
-                    <p style="color: azure">Hi {{ current_user.email }}!</p>
-                    {% endif %}
+    <div class="navbar-collapse">
+        <div class="row">
+            <div class="col-4">
+                {% if current_user.is_authenticated %}
+                <p style="color: azure">Hi {{ current_user.email }}!</p>
+                {% endif %}
+            </div>
+            <div class="col">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dropdown button
+                    </button>
+                    <form action="/" method="POST">
+                    <select name="inputGenere" id="inputGenere" class="form-control">
+                        {% for genere in generi %}
+                        <option>{{genere}}</option>
+                        {% endfor %}
+                    </select>
+                    </form>
                 </div>
+            </div>
 
+            {% block pagebody %}
 
-                {% block pagebody %}
+            {% endblock %}
 
-                {% endblock %}
+        </div>
+    </div>
 
+    <br><br><br><br>
+    <footer class="site-footer" role="contentinfo">
+        <div class="card-footer mt-auto row">
+            <div class="col-3">
+                <h2 class="font-weight-bold">UCIMG</h2>
+                <p class="text-justify textwhilefont">
+                    Via PlutoPaperino
+                </p>
+            </div>
+            <div class="col-6"></div>
+            <div class="col-3">
+                <h2>Contatti</h2>
+                <p class="text-justify textwhilefont">
+                    info@ucimg.it
+                </p>
             </div>
         </div>
-
-        <br><br><br><br>
-        <footer class="site-footer" role="contentinfo">
-            <div class="card-footer mt-auto row">
-                <div class="col-3">
-                    <h2 class="font-weight-bold">UCIMG</h2>
-                    <p class="text-justify textwhilefont">
-                        Via PlutoPaperino
-                    </p>
-                </div>
-                <div class="col-6"></div>
-                <div class="col-3">
-                    <h2>Contatti</h2>
-                    <p class="text-justify textwhilefont">
-                        info@ucimg.it
-                    </p>
-                </div>
-            </div>
-        </footer>
+    </footer>
 </body>
 </html>
