@@ -31,21 +31,22 @@
                 <p style="color: azure">Hi {{ current_user.email }}!</p>
                 {% endif %}
             </div>
-            <div class="col">
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Dropdown button
-                    </button>
+                <div class="col-2">
                     <form action="/" method="POST">
-                    <select name="inputGenere" id="inputGenere" class="form-control">
-                        {% for genere in generi %}
-                        <option>{{genere}}</option>
+                    <select name="inputGenere" id="inputGenere" class="form-control" text="genere">
+                        <option value="none" selected disabled hidden>
+                          Ricerca per genere
+                        </option>
+                        {% for genere in availableGeneri %}
+                        <option >{{genere}}</option>
                         {% endfor %}
                     </select>
-                    </form>
                 </div>
-            </div>
+                <div class="col">
+                    <button class="btn-primary" type="submit">Search</button>
+                </div>
+            </form>
+
 
             {% block pagebody %}
 

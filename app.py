@@ -16,13 +16,11 @@ from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
-from sqlalchemy.engine import reflection
-
-import string
-
 # TYPE import
 import datetime
 import decimal
+import string
+import base64
 
 from sqlalchemy.dialects.postgresql import psycopg2
 from sqlalchemy.orm import sessionmaker
@@ -32,9 +30,9 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engineVisistatore = create_engine('postgres+psycopg2://visitatore:0000@localhost:5432/CinemaBasi')
-engineCliente = create_engine('postgres+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi')
-engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi')
+engineVisistatore = create_engine('postgres+psycopg2://utentenonloggato:0000@localhost:5432/CinemaBasi')
+engineCliente = create_engine('postgres+psycopg2://clienteloggato:1234@localhost:5432/CinemaBasi')
+engineAdmin = create_engine('postgres+psycopg2://adminloggato:12345678@localhost:5432/CinemaBasi')
 
 metadata = MetaData()
 
@@ -50,8 +48,8 @@ film = Table('film', metadata,
              Column('paese', String),
              Column('anno', Integer),
              Column('vm', Integer),
-             Column('shown', Boolean)
-             # Column('img', Binary)
+             Column('shown', Boolean)#,
+             #Column('img', bytearray)
              )
 
 utente = Table('utente', metadata,
@@ -205,9 +203,6 @@ def home_page():
     except:
         print("nessun genere selezionato")
     print(inputGenere)
-    #form_genere = str(request.form['mailLogin'])
-
-
 
     queryGeneri = select([film.c.genere])
     genere = conn.execute(queryGeneri).fetchall()
@@ -218,22 +213,24 @@ def home_page():
         for t in temp:
             array.append(t)
     array = set(array)
-    print(array)
 
-    if inputGenere == None:
-        queryFilms = select([film]).where(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi))
-        films = conn.execute(queryFilms)
-    else :
-        queryFilms = select([film]).where(and_(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi), film.c.genere==bindparam["expectedGenere"]))
-        films = conn.execute(queryFilms, expectedGenere=inputGenere)
+    queryFilms = select([film]).where(and_(film.c.datainizio <= oggi, film.c.datafine >= oggi))
+    films = conn.execute(queryFilms).fetchall()
 
+    if inputGenere != None:
+        removeFilms = []
+        for f in films:
+            if (f.genere).find(inputGenere) == -1:
+                removeFilms.append(f)
+        for f in removeFilms:
+            films.remove(f)
 
     conn.close()
 
     if current_user.is_authenticated:
-        return render_template('login.html', movies=films, generi=array)  # stessa pagina rimossa dei btn log in e register
+        return render_template('login.html', movies=films, availableGeneri=array)  # stessa pagina rimossa dei btn log in e register
     else:
-        return render_template('index.html', movies=films, generi=array)
+        return render_template('index.html', movies=films, availableGeneri=array)
 
 
 
