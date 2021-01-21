@@ -199,11 +199,15 @@ def home_page():
     conn = engineVisistatore.connect()
     oggi = date.today()
     inputGenere = None
+    inputTitle = None
     try:
         inputGenere = request.form["inputGenere"]
     except:
         print("nessun genere selezionato")
-    print(inputGenere)
+    try:
+        inputTitle = (request.form["inputTitle"]).upper()
+    except:
+        print("nessun titolo inserito")
 
     queryGeneri = select([film.c.genere])
     genere = conn.execute(queryGeneri).fetchall()
@@ -222,6 +226,13 @@ def home_page():
         removeFilms = []
         for f in films:
             if (f.genere).find(inputGenere) == -1:
+                removeFilms.append(f)
+        for f in removeFilms:
+            films.remove(f)
+    if inputTitle != None:
+        removeFilms = []
+        for f in films:
+            if (f.titolo).find(inputTitle) == -1:
                 removeFilms.append(f)
         for f in removeFilms:
             films.remove(f)
