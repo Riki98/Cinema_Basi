@@ -196,6 +196,7 @@ def alchemyencoder(obj):
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     # apertura connessione al DB
+    print("almeno qua")
     conn = engineVisistatore.connect()
     oggi = date.today()
     inputGenere = None
@@ -275,7 +276,7 @@ def prenotazione(idProiezione):
     queryFilmToBeBooked = select([film]).where(film.c.idfilm == (proiezioni.idfilm))
     filmToBeBooked = conn.execute(queryFilmToBeBooked).fetchone()
 
-    querySeats = select([sala]).where(sala.c.idsala == (proiezioni.idfilm))
+    querySeats = select([sala]).where(sala.c.idsala == proiezioni.idsala)
     seats = conn.execute(querySeats).fetchone()
 
     riga = seats.numfila
@@ -324,7 +325,7 @@ def revertAcquista(postiAcquistati, idProiezione, lastX, idUtente, idSala):
 @app.route('/acquista', methods=['POST'])
 @login_required
 def acquista():
-    eng = create_engine('postgresql+psycopg2://clienteloggato:1599@localhost:5432/cinema_basi',
+    eng = create_engine('postgresql+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
     formPostiAcquistati = (request.form['posti'])
@@ -451,56 +452,6 @@ def changePsw():
     return redirect("/areaUtente")
 
 
-@app.route('/admin')
-@login_required
-def admin_page():
-    if current_user.ruolo == 0:
-        return redirect("/")
-    else:
-        print("admin_page " + current_user.email)
-        conn = engineAdmin.connect()
-        takenFilms = select([film]).order_by(film.c.idfilm.asc())
-        queryTakenFilms = conn.execute(takenFilms).fetchall()
-        conn.close()
-        return render_template('admin_pages/tabelle_admin/tabella_film.html', arrayFilms=queryTakenFilms,
-                               adminLogged=current_user.get_email())
-
-
-@app.route("/ticket_sold", methods=['GET'])
-def ticket_sold():
-    conn = engineAdmin.connect()
-    # query di divisione dei giorni per ogni proiezione
-    # somma dei biglietti divisi per film e data
-    query = conn.execute("SELECT\
-            film.idfilm, film.titolo, date.data, (SELECT SUM(visite) AS somma\
-            FROM proiezione LEFT JOIN(\
-                (SELECT COUNT(*) AS visite, biglietto.idproiezione\
-            FROM biglietto GROUP BY\
-            idproiezione)) AS visitatori ON\
-            proiezione.idproiezione = visitatori.idproiezione WHERE\
-            proiezione.idfilm = film.idfilm AND proiezione.data = date.data)\
-            FROM film,\
-            (SELECT DISTINCT proiezione.data FROM proiezione) AS date ORDER BY\
-            film.idfilm, date.data\
-            ")
-    giorni = conn.execute(select([distinct(proiezione.c.data)]).order_by(proiezione.c.data)).fetchall()
-    array = []
-    lastId = -1
-    for row in query:
-        if (row.idfilm > lastId):
-            d = Dato(row.idfilm, row.titolo)
-            d.add(row.somma)
-            array.append(d)
-            lastId = row.idfilm
-        else:
-            (array[len(array) - 1]).add(row.somma)
-
-    stats = json.dumps([dato.__dict__ for dato in array])
-    giorni = json.dumps([giorno[0].strftime('%m/%d/%Y') for giorno in giorni])
-    conn.close()
-    return render_template("admin_pages/stats/tickets_sold.html", stats=stats, giorni=giorni)
-
-
 # REGISTER
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -544,6 +495,77 @@ def register():
 def logout():
     logout_user()
     return redirect("/")
+
+
+@app.route('/admin')
+@login_required
+def admin_page():
+    if current_user.ruolo == 0:
+        return redirect("/")
+    else:
+        print("admin_page " + current_user.email)
+        conn = engineAdmin.connect()
+        takenFilms = select([film]).order_by(film.c.idfilm.asc())
+        queryTakenFilms = conn.execute(takenFilms).fetchall()
+        conn.close()
+        return render_template('admin_pages/tabelle_admin/tabella_film.html', arrayFilms=queryTakenFilms,
+                               adminLogged=current_user.get_email())
+
+
+################################################## GESTIONE STATISTICHE #############################################################
+
+# STATISTICA: definizione per la funzione usata per calcolare quanti biglietti sono stati venduti per film
+@app.route("/ticket_sold", methods=['GET'])
+def biglietti_venduti():
+    conn = engineAdmin.connect()
+    # query di divisione dei giorni per ogni proiezione
+    # somma dei biglietti divisi per film e data
+    query = conn.execute("SELECT\
+            film.idfilm, film.titolo, date.data, (SELECT SUM(visite) AS somma\
+            FROM proiezione LEFT JOIN(\
+                (SELECT COUNT(*) AS visite, biglietto.idproiezione\
+            FROM biglietto GROUP BY\
+            idproiezione)) AS visitatori ON\
+            proiezione.idproiezione = visitatori.idproiezione WHERE\
+            proiezione.idfilm = film.idfilm AND proiezione.data = date.data)\
+            FROM film,\
+            (SELECT DISTINCT proiezione.data FROM proiezione) AS date ORDER BY\
+            film.idfilm, date.data\
+            ")
+    giorni = conn.execute(select([distinct(proiezione.c.data)]).order_by(proiezione.c.data)).fetchall()
+    array = []
+    lastId = -1
+    for row in query:
+        if (row.idfilm > lastId):
+            d = Dato(row.idfilm, row.titolo)
+            d.add(row.somma)
+            array.append(d)
+            lastId = row.idfilm
+        else:
+            (array[len(array) - 1]).add(row.somma)
+
+    stats = json.dumps([dato.__dict__ for dato in array])
+    giorni = json.dumps([giorno[0].strftime('%m/%d/%Y') for giorno in giorni])
+    conn.close()
+    return render_template("admin_pages/stats/tickets_sold.html", stats=stats, giorni=giorni)
+
+
+@app.route("/occupazione_sala", methods=['GET'])
+def occupazione_sala():
+    conn = engineAdmin.connect()
+    # numero biglietti per film
+    # numero totale di posti occupati su totale disponibili per sala
+
+    numPostoPerSala = conn.execute(select([sala.c.numfila, sala.c.numcolonne]).order_by(sala.c.idsala)).fetchall()
+
+    bigliettiTot = conn.execute(select([func.count(biglietto.c.idproiezione)]).select_from(
+        biglietto.join(proiezione, proiezione.c.idproiezione == biglietto.c.idproiezione)).group_by(
+        proiezione.c.idfilm)).fetchall()
+
+    for b in bigliettiTot:
+        print(b)
+
+    return redirect("/admin")
 
 
 ##################################### GESTIONE TABELLA FILM ############################################
@@ -735,7 +757,7 @@ def ripubblicazione(idFilm):
     return redirect("/admin")
 
 
-############################################# GESTIONE TABELLA SALA ##############################################
+############################################# GESTIONE TABELLA PROIEZIONE ##############################################
 
 @app.route("/admin/tabella_proiezioni")
 def tabella_proiezioni():
@@ -756,7 +778,6 @@ def tabella_proiezioni():
                                adminLogged=current_user.get_email(), films=films)
 
 
-
 @app.route('/proiezione/update/<idProiezione>', methods=['GET', 'POST'])
 @login_required
 def updateScreening(idProiezione):
@@ -775,6 +796,7 @@ def updateScreening(idProiezione):
     conn.close()
     return redirect("/admin/tabella_proiezioni")
 
+
 @app.route('/proiezione/insert', methods=['GET', 'POST'])
 @login_required
 def insertScreening():
@@ -785,15 +807,16 @@ def insertScreening():
     inputSala = request.form["sala"]
     inputGiorno = request.form["giorno"]
 
-    queryIdFilm = select([film.c.idfilm]).where(film.c.titolo==bindparam("nuovoTitolo"))
-    nuovoIdFilm = conn.execute(queryIdFilm, nuovoTitolo=inputTitolo).fetchone()
-    maxId = conn.execute(select([func.max([proiezione.c.idproiezione])])).fetchone()
+    queryIdFilm = select([film.c.idfilm]).where(film.c.titolo == bindparam("nuovoTitolo"))
+    nuovoIdFilm = conn.execute(queryIdFilm, nuovoTitolo=inputTitolo).fetchone()[0]
+    maxId = conn.execute(func.max(proiezione.c.idproiezione)).fetchone()
     insertProiezione = insert(proiezione).values(orario=bindparam("nuovoOrario"),
-                                                  idfilm=bindparam("nuovoFilm"),
-                                                  idproiezione=bindparam("nuovaIdproiezione"),
-                                                  idsala=bindparam("nuovaSala"),
-                                                  data=bindparam("nuovaData"))
-    conn.execute(insertProiezione, nuovoOrario=inputOra, nuovoFilm=nuovoIdFilm, nuovaIdproiezione=maxId+1, nuovaSala=inputSala, nuovaData=inputGiorno)
+                                                 idfilm=bindparam("nuovoFilm"),
+                                                 idproiezione=bindparam("nuovaIdproiezione"),
+                                                 idsala=bindparam("nuovaSala"),
+                                                 data=bindparam("nuovaData"))
+    conn.execute(insertProiezione, nuovoOrario=inputOra, nuovoFilm=nuovoIdFilm, nuovaIdproiezione=maxId[0] + 1,
+                 nuovaSala=inputSala, nuovaData=inputGiorno)
     return redirect("/admin/tabella_proiezioni")
 
 
@@ -837,6 +860,7 @@ def rendi_admin(idUtente):
         conn.close()
         return redirect("/admin/tabella_utente")
 
+
 ####################### DEBUG ##############################
 @app.route("/prova", methods=["POST"])
 def prova():
@@ -849,30 +873,29 @@ def debug():
     image_read = None
     image = None
     with open('~/myphoto.png', "rb") as img_file:
-            encoded_image = base64.b64encode(img_file.read())
+        encoded_image = base64.b64encode(img_file.read())
     try:
         encoded_image = flask.request.files.get('inputImage')
-        #if img == None:
+        # if img == None:
         #    print("immagine vuota")
-        #else:
+        # else:
         #    print("Immagine presa")
 
-        #img.save('../static/img/FURY.png', 'PNG')
+        # img.save('../static/img/FURY.png', 'PNG')
 
+        # print(b64_string)
 
-        #print(b64_string)
+        # img_ = open(img, 'rb')
+        # image_read = img_.read()
+        # img_encode = (base64.encodestring(image_read))
 
-        #img_ = open(img, 'rb')
-        #image_read = img_.read()
-        #img_encode = (base64.encodestring(image_read))
-
-        #img_decode = base64.decodestring(img)
-        #img_result = open('deer_decode.png', 'wb')
-        #img_result.write(img_decode)
+        # img_decode = base64.decodestring(img)
+        # img_result = open('deer_decode.png', 'wb')
+        # img_result.write(img_decode)
     finally:
         print("--------------------------------------")
 
-    return render_template("prova.html")#, immagine=img, imgdec=img_result)
+    return render_template("prova.html")  # , immagine=img, imgdec=img_result)
 
 
 if __name__ == '__main__':
