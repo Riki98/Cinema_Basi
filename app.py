@@ -5,6 +5,7 @@ import json
 from datetime import datetime, date
 from sqlite3.dbapi2 import Binary
 
+import flask
 from flask import Flask, render_template, request, json, redirect, url_for
 
 # DB e Users import
@@ -22,7 +23,7 @@ import decimal
 import string
 import base64
 
-from sqlalchemy.dialects.postgresql import psycopg2
+from sqlalchemy.dialects.postgresql import psycopg2, BYTEA
 from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
@@ -48,8 +49,8 @@ film = Table('film', metadata,
              Column('paese', String),
              Column('anno', Integer),
              Column('vm', Integer),
-             Column('shown', Boolean)#,
-             #Column('img', String)
+             Column('shown', Boolean),
+             Column('img', BYTEA)
              )
 
 utente = Table('utente', metadata,
@@ -228,10 +229,10 @@ def home_page():
     conn.close()
 
     if current_user.is_authenticated:
-        return render_template('login.html', movies=films, availableGeneri=array)  # stessa pagina rimossa dei btn log in e register
+        return render_template('login.html', movies=films,
+                               availableGeneri=array)  # stessa pagina rimossa dei btn log in e register
     else:
         return render_template('index.html', movies=films, availableGeneri=array)
-
 
 
 @app.route('/film/<idFilm>', methods=['GET'])
@@ -367,7 +368,7 @@ def areaUtente():
     # queryBigliettiTot = select([posto.fila, posto.numero, proiezione.orario, proiezione.data, film.titolo])\
     #    .select_from(posto.join(biglietto)).select_from(biglietto.join(proiezione)).select_from(proiezione.join(film))\
     #    .where(biglietto.c.idutente == current_user.id)
-    queryUser = select([utente.c.nome, utente.c.cognome, utente.c.email])\
+    queryUser = select([utente.c.nome, utente.c.cognome, utente.c.email]) \
         .where(utente.c.idutente == current_user.id)
     userInfo = conn.execute(queryUser).fetchone()
 
@@ -386,7 +387,6 @@ def areaUtente():
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     metadata.create_all(engineCliente)
     print("prime")
     conn = engineCliente.connect()
@@ -414,6 +414,7 @@ def login():
                 return redirect("/admin")
     return render_template('login.html')
 
+
 # CHANGE PSW
 @app.route('/changePsw', methods=['GET', 'POST'])
 @login_required
@@ -422,16 +423,16 @@ def changePsw():
     form_oldpws = str(request.form['oldpassword'])
     form_newpws = str(request.form['newpassword'])
     form_newpws2 = str(request.form['newpassword2'])
-    queryPsw = select([utente.c.password])\
+    queryPsw = select([utente.c.password]) \
         .where(utente.c.idutente == current_user.id)
     oldPsw = conn.execute(queryPsw).fetchone()[0]
 
     print(oldPsw)
     print(form_oldpws)
     if form_oldpws == oldPsw:
-        if form_newpws == form_newpws2: #adesso funzia però non so farlo con le query del cazzo
-            queryUpdate = "update utente set password ="+form_newpws+" where idutente ="+ str(current_user.id)
-            #update(utente.c.password == form_newpws).where(utente.c.idutente == current_user.id)
+        if form_newpws == form_newpws2:  # adesso funzia però non so farlo con le query del cazzo
+            queryUpdate = "update utente set password =" + form_newpws + " where idutente =" + str(current_user.id)
+            # update(utente.c.password == form_newpws).where(utente.c.idutente == current_user.id)
             conn.execute(queryUpdate)
             conn.close()
             return redirect("/logout")
@@ -732,14 +733,17 @@ def tabella_proiezioni():
     else:
         print("admin_page " + current_user.email)
         conn = engineAdmin.connect()
+        queryFilms = select([film.c.titolo])
+        films = conn.execute(queryFilms).fetchall()
         takenScreening = select([proiezione.c.idproiezione, proiezione.c.idfilm, proiezione.c.idsala, proiezione.c.data,
                                  proiezione.c.orario, film.c.titolo]).where(
-                                 proiezione.c.idfilm == film.c.idfilm).order_by(asc(proiezione.c.idproiezione))
+            proiezione.c.idfilm == film.c.idfilm).order_by(asc(proiezione.c.idproiezione))
         queryTakenScreening = conn.execute(takenScreening).fetchall()
         conn.close()
         print(queryTakenScreening)
         return render_template('admin_pages/tabelle_admin/tabella_proiezioni.html', arrayScreening=queryTakenScreening,
-                               adminLogged=current_user.get_email())
+                               adminLogged=current_user.get_email(), films=films)
+
 
 
 @app.route('/proiezione/update/<idProiezione>', methods=['GET', 'POST'])
@@ -760,6 +764,26 @@ def updateScreening(idProiezione):
     conn.close()
     return redirect("/admin/tabella_proiezioni")
 
+@app.route('/proiezione/insert', methods=['GET', 'POST'])
+@login_required
+def insertScreening():
+    conn = engineAdmin.connect()
+
+    inputTitolo = request.form["titolo"]
+    inputOra = request.form["ora"]
+    inputSala = request.form["sala"]
+    inputGiorno = request.form["giorno"]
+
+    queryIdFilm = select([film.c.idfilm]).where(film.c.titolo==bindparam("nuovoTitolo"))
+    nuovoIdFilm = conn.execute(queryIdFilm, nuovoTitolo=inputTitolo).fetchone()
+    maxId = conn.execute(select([func.max([proiezione.c.idproiezione])])).fetchone()
+    insertProiezione = insert(proiezione).values(orario=bindparam("nuovoOrario"),
+                                                  idfilm=bindparam("nuovoFilm"),
+                                                  idproiezione=bindparam("nuovaIdproiezione"),
+                                                  idsala=bindparam("nuovaSala"),
+                                                  data=bindparam("nuovaData"))
+    conn.execute(insertProiezione, nuovoOrario=inputOra, nuovoFilm=nuovoIdFilm, nuovaIdproiezione=maxId+1, nuovaSala=inputSala, nuovaData=inputGiorno)
+    return redirect("/admin/tabella_proiezioni")
 
 
 ############################################# GESTIONE TABELLA UTENTI ##############################################
@@ -774,15 +798,12 @@ def tabella_utenti():
         conn = engineAdmin.connect()
         takenUsers = select([utente]).order_by(asc(utente.c.idutente))
         queryTakenUsers = conn.execute(takenUsers).fetchall()
-        try:
-            img = request.form["inputImage"]
-            print(img)
-        except:
-            print("non ce l'ho fatta")
+
         conn.close()
         print(queryTakenUsers)
         return render_template('admin_pages/tabelle_admin/tabella_utenti.html', arrayUsers=queryTakenUsers,
                                adminLogged=current_user.get_email())
+
 
 @app.route('/admin/grant/<idUtente>', methods=['GET', 'POST'])
 def rendi_admin(idUtente):
@@ -796,19 +817,51 @@ def rendi_admin(idUtente):
         conn = eng.connect()
         inputMail = request.form["inputMail" + idUtente]
         inputPassword = request.form["inputPassword" + idUtente]
-        #queryUpdate = "update utente set password ="+form_newpws+" where idutente ="+ str(current_user.id)
+        # queryUpdate = "update utente set password ="+form_newpws+" where idutente ="+ str(current_user.id)
         queryUpdate = update(utente). \
-            where(utente.c.idutente == bindparam("userTaken")).values(email=bindparam("newEmail"), password=bindparam("newPassword"), ruolo=bindparam("newAdminSelected"))
+            where(utente.c.idutente == bindparam("userTaken")).values(email=bindparam("newEmail"),
+                                                                      password=bindparam("newPassword"),
+                                                                      ruolo=bindparam("newAdminSelected"))
         conn.execute(queryUpdate, userTaken=idUtente, newEmail=inputMail, newPassword=inputPassword, newAdminSelected=1)
         conn.close()
         return redirect("/admin/tabella_utente")
 
+####################### DEBUG ##############################
+@app.route("/prova", methods=["POST"])
+def prova():
+    return render_template("prova.html")
 
 
-
-@app.route("/debug")
+@app.route("/debug", methods=["GET", "POST"])
 def debug():
-    return render_template("admin_pages/tabelle_admin/tabella_film.html")
+    img_ = None
+    image_read = None
+    image = None
+    with open('~/myphoto.png', "rb") as img_file:
+            encoded_image = base64.b64encode(img_file.read())
+    try:
+        encoded_image = flask.request.files.get('inputImage')
+        #if img == None:
+        #    print("immagine vuota")
+        #else:
+        #    print("Immagine presa")
+
+        #img.save('../static/img/FURY.png', 'PNG')
+
+
+        #print(b64_string)
+
+        #img_ = open(img, 'rb')
+        #image_read = img_.read()
+        #img_encode = (base64.encodestring(image_read))
+
+        #img_decode = base64.decodestring(img)
+        #img_result = open('deer_decode.png', 'wb')
+        #img_result.write(img_decode)
+    finally:
+        print("--------------------------------------")
+
+    return render_template("prova.html")#, immagine=img, imgdec=img_result)
 
 
 if __name__ == '__main__':

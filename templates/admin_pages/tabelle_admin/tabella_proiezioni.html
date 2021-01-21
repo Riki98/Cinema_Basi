@@ -21,110 +21,44 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="/film/insert" method="POST" class="form-signup">
+                    <form action="{{url_for('insertScreening')}}" method="POST"
+                          class="form-signup">
                         <div class="row">
+                            <div class="col-1"></div>
                             <div class="col">
                                 <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="newTitle">Titolo</label>
-                                        <input name="newTitle" type="text"
-                                               class="form-control"
-                                               id="newTitle">
-                                    </div>
-
-                                    <div class="form-group col-md-6">
-                                        <label for="newGenre">Genere</label>
-                                        <input name="newGenre" type="text"
-                                               class="form-control"
-                                               id="newGenre">
+                                    <select name="titolo" id="titolo" class="form-control" text="genere">
+                                        <option value="none" selected disabled hidden>
+                                            Titolo film
+                                        </option>
+                                        {% for f in films %}
+                                        <option>{{ f.titolo }}</option>
+                                        {% endfor %}
+                                    </select>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="newPlot">Trama</label>
-                                    <input name="newPlot" type="text"
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="sala">Sala</label>
+                                        <input name="sala" type="text"
+                                               class="form-control"
+                                               id="sala">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <label for="giorno">Giorno</label>
+                                    <input name="giorno" type="text"
                                            class="form-control"
-                                           id="newPlot">
+                                           id="giorno">
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                        <label for="is3d">3D</label>
-                                        <select name="is3d"
-                                                id="is3d" class="form-control">
-                                            <option value="False">No</option>
-                                            <option value="True">Si</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="newMinAge"><14</label>
-                                        <select name="newMinAge"
-                                                id="newMinAge" class="form-control">
-                                            <option value="False">No</option>
-                                            <option value="True">Si</option>
-                                        </select>
+                                        <label for="ora">Ora</label>
+                                        <input name="ora" type="text"
+                                               class="form-control"
+                                               id="ora">
                                     </div>
                                 </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="newStartData">Data Inizio</label>
-                                        <input name="newStartData" type="text"
-                                               class="form-control"
-                                               id="newStartData"
-                                               placeholder="AAAA-MM-GG">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="newLastData">Data Fine</label>
-                                        <input name="newLastData" type="text"
-                                               class="form-control"
-                                               id="newLastData"
-                                               placeholder="AAAA-MM-GG">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-4">
-                                        <label for="newCountry">Paese</label>
-                                        <input name="newCountry" type="text"
-                                               class="form-control"
-                                               id="newCountry">
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                        <label for="newYearPubb">Anno</label>
-                                        <input name="newYearPubb" type="text"
-                                               class="form-control"
-                                               id="newYearPubb">
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                        <label for="newDuration">Durata</label>
-                                        <input name="newDuration" type="text"
-                                               class="form-control"
-                                               id="newDuration"
-                                               placeholder="(In minuti)">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <label>Aggiungere entrambi anche se un attore è anche regista</label>
-                                    <br>
-                                    <div class="form-group col-md-6">
-                                        <label for="newMovDir">Registi</label>
-                                        <input name="newMovDir" type="text"
-                                               class="form-control"
-                                               id="newMovDir"
-                                               placeholder="Nome Cognome, Nome Cognome">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="newActors">Attori</label>
-                                        <input name="newActors" type="text"
-                                               class="form-control"
-                                               id="newActors"
-                                               placeholder="Nome Cognome, Nome Cognome">
-                                    </div>
-                                </div>
-                                <div class="from-row">
-                                    <label for="newImage">Inserisci locandina (420x600)</label>
-                                    <input name="newImage" type="file"
-                                           class="form-control"
-                                           id="newImage">
-                                </div>
-                                <div class="col 1"></div>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -183,7 +117,8 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <form action="{{url_for('updateScreening', idProiezione=row.idproiezione)}}" method="POST"
+                                    <form action="{{url_for('updateScreening', idProiezione=row.idproiezione)}}"
+                                          method="POST"
                                           class="form-signup">
                                         <div class="row">
                                             <div class="col-1"></div>
