@@ -117,7 +117,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-active_users = []
+log_try = False
 
 # variabile globale che mi serve per sapere se ci sono errori senza il bisogno (problematico) di passarli attraverso la redirect
 erroriCompilazione = ''
@@ -199,17 +199,24 @@ def alchemyencoder(obj):
 def home_page():
     # apertura connessione al DB
     conn = engineVisistatore.connect()
+
+    global erroriCompilazione
+    errore = None
+    if erroriCompilazione != '':
+        errore = erroriCompilazione
+        erroriCompilazione=''
+
     oggi = date.today()
     inputGenere = None
     inputTitle = None
     try:
         inputGenere = request.form["inputGenere"]
     except:
-        print("nessun genere selezionato")
+        print("")
     try:
         inputTitle = (request.form["inputTitle"]).upper()
     except:
-        print("nessun titolo inserito")
+        print("")
 
     queryGeneri = select([film.c.genere])
     genere = conn.execute(queryGeneri).fetchall()
@@ -245,7 +252,7 @@ def home_page():
         return render_template('login.html', movies=films,
                                availableGeneri=array)  # stessa pagina rimossa dei btn log in e register
     else:
-        return render_template('index.html', movies=films, availableGeneri=array)
+        return render_template('index.html', movies=films, availableGeneri=array, log=log_try)
 
 
 @app.route('/film/<idFilm>', methods=['GET'])
@@ -402,13 +409,17 @@ def login():
     metadata.create_all(engineCliente)
     conn = engineCliente.connect()
     if request.method == 'POST':
-        form_email = str(request.form['mailLogin'])
-        form_passw = str(request.form['passwordLogin'])
+        form_email = request.form['mailLogin']
+        form_passw = request.form['passwordLogin']
         queryControlUser = select([utente]).where(
             and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
         utente_log = conn.execute(queryControlUser, expectedEmail=form_email, expectedPAss=form_passw).fetchone()
         conn.close()
+        global erroriCompilazione
         if utente_log is None:
+            global log_try
+            log_try = 1
+            erroriCompilazione = "Errore inserimento dati"
             return redirect("/")  # home_page()
         login_user(User(utente_log['idutente'], utente_log['email'], utente_log['ruolo']))  # appoggio a flask_login
         if int(current_user.get_ruolo()) == 0:
@@ -838,49 +849,58 @@ def tabella_proiezioni():
     if current_user.ruolo == 0:
         return redirect("/")
     else:
+        global erroriCompilazione
+        errore = None
+        now = datetime.now()
         if erroriCompilazione != '':
             errore = erroriCompilazione
-            erroriCompilazione = None
+            erroriCompilazione = ''
         conn = engineAdmin.connect()
         queryFilms = select([film.c.titolo])
         films = conn.execute(queryFilms).fetchall()
         takenScreening = select([proiezione.c.idproiezione, proiezione.c.idfilm, proiezione.c.idsala, proiezione.c.data,
                                  proiezione.c.orario, proiezione.c.is3d, film.c.titolo]).where(
-            proiezione.c.idfilm == film.c.idfilm).order_by(asc(proiezione.c.idproiezione))
+            and_(proiezione.c.idfilm == film.c.idfilm, proiezione.c.data >= datetime.date(now))).order_by(desc(proiezione.c.idproiezione))
         queryTakenScreening = conn.execute(takenScreening).fetchall()
         conn.close()
         print(queryTakenScreening)
         return render_template('admin_pages/tabelle_admin/tabella_proiezioni.html', arrayScreening=queryTakenScreening,
-                               adminLogged=current_user.get_email(), films=films, error=errore)
+                                   adminLogged=current_user.get_email(), films=films, error=errore)
+
 
 
 @app.route('/proiezione/update/<idProiezione>', methods=['GET', 'POST'])
 @login_required
 def updateScreening(idProiezione):
-    inputSala = request.form["inputRoom" + idProiezione]
-    inputGiorno = request.form["inputDay" + idProiezione]
+    inputSala = int(request.form["inputRoom" + idProiezione])
+    inputData = request.form["inputDay" + idProiezione]
     inputOra = request.form["inputTime" + idProiezione]
     input3d = request.form["input3d" + idProiezione]
 
-    if isinstance(inputSala, int) == False:
-        errore = "Input della sala non corretto"
-        return redirect(url_for("/admin/tabella_proiezioni", errore=errore))
+    giorno = list(inputData.split('-'))
+    giornoScelto = datetime(int(giorno[0]), int(giorno[1]), int(giorno[2]))
 
-    if inputGiorno >= str(date.today()):
+    global erroriCompilazione
+
+    if isinstance(inputSala, int) == False:
+        erroriCompilazione="Input della sala non corretto"
+        return redirect("/admin/tabella_proiezioni")
+
+    if giornoScelto >= datetime.today():
         print("giorno ok")
-    elif inputGiorno <= str(date.today()):
-        errore = json.dumps({"Giorno nel passato non valido"})
-        return redirect(url_for("/admin/tabella_proiezioni", messages=json.loads(errore)))
+    elif giornoScelto <= datetime.today():
+        erroriCompilazione = "Giorno nel passato non valido"
+        return redirect("/admin/tabella_proiezioni")
     else:
-        errore = json.dumps({"Input della data non corretto"})
-        return redirect(url_for("/admin/tabella_proiezioni", messages=json.loads(errore)))
+        erroriCompilazione = "Input della data non corretto"
+        return redirect("/admin/tabella_proiezioni")
 
     if input3d == "Si":
         nuovoInput3d = True
     elif input3d == "No":
         nuovoInput3d = False
     else:
-        errore = "Input 3D non corretto"
+        erroriCompilazione = "Input 3D non corretto"
         return redirect("/admin/tabella_proiezioni")
 
     eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
@@ -891,7 +911,7 @@ def updateScreening(idProiezione):
                                                                            data=bindparam("newInputDay"),
                                                                            orario=bindparam("newInputTime"),
                                                                            is3d=bindparam("new3d"))
-    conn.execute(queryUpdate, proiezione=idProiezione, newInputRoom=inputSala, newInputDay=inputGiorno,
+    conn.execute(queryUpdate, proiezione=idProiezione, newInputRoom=inputSala, newInputDay=inputData,
                  newInputTime=inputOra, new3d=nuovoInput3d)
     conn.close()
     return redirect("/admin/tabella_proiezioni")
@@ -909,16 +929,16 @@ def insertScreening():
     input3d = request.form["3d"]
 
     if isinstance(inputSala, int) == False:
-        errore("Input della sala non corretto")
+        print("Input della sala non corretto")
         return redirect("/admin/tabella_proiezioni")
 
     if inputGiorno >= str(date.today()):
         print("giorno ok")
     elif inputGiorno <= str(date.today()):
-        errore("Giorno nel passato non valido")
+        print("Giorno nel passato non valido")
         return redirect("/admin/tabella_proiezioni")
     else:
-        errore("Input della data non corretto")
+        print("Input della data non corretto")
         return redirect("/admin/tabella_proiezioni")
 
     if input3d == "Si":
@@ -926,7 +946,7 @@ def insertScreening():
     elif input3d == "No":
         nuovoInput3d = False
     else:
-        errore("Input 3D non corretto")
+        print("Input 3D non corretto")
         return redirect("/admin/tabella_proiezioni")
 
     queryIdFilm = select([film.c.idfilm]).where(film.c.titolo == bindparam("nuovoTitolo"))
@@ -954,7 +974,6 @@ def tabella_utenti():
         conn = engineAdmin.connect()
         takenUsers = select([utente]).order_by(asc(utente.c.idutente))
         queryTakenUsers = conn.execute(takenUsers).fetchall()
-
         conn.close()
         return render_template('admin_pages/tabelle_admin/tabella_utenti.html', arrayUsers=queryTakenUsers,
                                adminLogged=current_user.get_email())

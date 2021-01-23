@@ -23,7 +23,7 @@
 </nav>
 
 
-    {% include 'films.html' %}
+{% include 'films.html' %}
 
 
 <!-- Inizio modal login -->
@@ -80,7 +80,7 @@
                     <div class="col-1"></div>
                     <div class="col">
                         {% if log == 1 %}
-                            <p id="errorLog" style="color: red">Password errata oppure non sei registrato!</p>
+                        <p id="errorLog" style="color: red">Password errata oppure non sei registrato!</p>
                         {% endif %}
                     </div>
                 </div>
@@ -191,10 +191,10 @@
                     <div class="col-1"></div>
                 </div>
 
-                    <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary btn-block">Sign up</button>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary btn-block">Sign up</button>
+                </div>
             </form>
             <!-- Fine form di registrazione -->
         </div>

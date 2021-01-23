@@ -93,9 +93,9 @@
     <div class="col-1"></div>
     <div class="col">
         {% if error != None %}
-        <div class="alert alert-danger" role="alert">
-            Errore : {{error}}
-        </div>
+            <div class="alert alert-danger" role="alert">
+                Errore : {{error}}
+            </div>
         {% endif %}
         <table class="table table-hover">
             <thead>
@@ -107,7 +107,6 @@
                 <th scope="col">Ora</th>
                 <th scope="col">3D</th>
                 <th scope="col">Modifica</th>
-                <th scope="col">Elimina</th>
             </tr>
             </thead>
             <tbody>
@@ -176,10 +175,19 @@
                                                     </div>
                                                     <div class="form-group col-md-6">
                                                         <label for="input3d{{row.idproiezione}}">3D</label>
-                                                        <input name="input3d{{row.idproiezione}}" type="text"
+                                                        <select name="input3d{{row.idproiezione}}" type="text"
                                                                class="form-control"
-                                                               id="input3d{{row.idproiezione}}"
-                                                               value="{{row.is3d}}">
+                                                               id="input3d{{row.idproiezione}}">
+                                                            <option value="none" selected hidden>
+                                                                {% if row.is3d == True %}
+                                                                    Si
+                                                                {% else %}
+                                                                    No
+                                                                {% endif %}
+                                                            </option>
+                                                            <option value="Si">Si</option>
+                                                            <option value="No">No</option>
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
@@ -196,7 +204,6 @@
                         </div>
                     </div>
                 </td>
-                <td><a href="/proiezione/delete/{{row.idproiezione}}">Elimina</a></td>
                 {% endfor %}
             </tbody>
         </table>
