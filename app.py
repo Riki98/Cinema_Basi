@@ -19,7 +19,6 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
 # TYPE import
 from array import *
-import datetime
 import decimal
 import string
 import base64
@@ -41,7 +40,6 @@ metadata = MetaData()
 film = Table('film', metadata,
              Column('idfilm', Integer, primary_key=True),
              Column('titolo', String),
-             Column('is3d', Boolean),
              Column('genere', String),
              Column('trama', String),
              Column('datainizio', Date),
@@ -77,7 +75,6 @@ sala = Table('sala', metadata,
              Column('idsala', Integer, primary_key=True),
              Column('numfila', Integer),
              Column('numcolonne', Integer),
-             Column('is3d', Boolean)
              )
 
 proiezione = Table('proiezione', metadata,
@@ -86,6 +83,7 @@ proiezione = Table('proiezione', metadata,
                    Column('idfilm', Integer),
                    Column('idproiezione', Integer, primary_key=True),
                    Column('data', Date),
+                   Column('is3d', Boolean)
                    )
 
 posto = Table('posto', metadata,
@@ -192,6 +190,7 @@ def alchemyencoder(obj):
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
 
+
 # render alla pagina principale
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
@@ -251,7 +250,7 @@ def home_page():
 def base_film(idFilm):
     conn = engineCliente.connect()
     # query a db per recuperare entità film con id idFilm
-    queryFilm = select([film.c.titolo, film.c.trama, film.c.genere, film.c.is3d]).where(
+    queryFilm = select([film.c.titolo, film.c.trama, film.c.genere]).where(
         film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm}).fetchone()
 
@@ -604,13 +603,16 @@ def dividi_generi(array_generi):
 @login_required
 def genere_preferito():
     conn = engineAdmin.connect()
-    #array contenente (totale biglietti per film, titolo film, genere del film)
-    bigliettiPerFilm = conn.execute(select([func.count(biglietto.c.idposto), film.c.titolo, film.c.genere]).select_from(biglietto.
-        join(proiezione, biglietto.c.idproiezione == proiezione.c.idproiezione).
-        join(film, proiezione.c.idfilm == film.c.idfilm)).\
-        group_by(film.c.titolo, film.c.genere)).fetchall()
+    # array contenente (totale biglietti per film, titolo film, genere del film)
+    bigliettiPerFilm = conn.execute(
+        select([func.count(biglietto.c.idposto), film.c.titolo, film.c.genere]).select_from(biglietto.
+                                                                                            join(proiezione,
+                                                                                                 biglietto.c.idproiezione == proiezione.c.idproiezione).
+                                                                                            join(film,
+                                                                                                 proiezione.c.idfilm == film.c.idfilm)). \
+            group_by(film.c.titolo, film.c.genere)).fetchall()
 
-    #vado a prendermi e suddividermi tutti i generi
+    # vado a prendermi e suddividermi tutti i generi
     queryGeneri = select([film.c.genere])
     generi = conn.execute(queryGeneri).fetchall()
     arrayGeneri = []
@@ -653,7 +655,9 @@ def genere_preferito():
 
     conn.close()
 
-    return render_template("/admin_pages/stats/generi_preferiti.html", arrayPerc=percentualiPerGenere, arrayPerGeneri=arrayGeneri)
+    return render_template("/admin_pages/stats/generi_preferiti.html", arrayPerc=percentualiPerGenere,
+                           arrayPerGeneri=arrayGeneri)
+
 
 ##################################### GESTIONE TABELLA FILM ############################################
 
@@ -709,7 +713,6 @@ def updateFilm(idFilm):
 def insert_film():
     newTitle = request.form["newTitle"]
     newGenre = request.form["newGenre"]
-    is3d = request.form["is3d"]
     newPlot = request.form["newPlot"]
     newStartData = request.form["newStartData"]
     newLastData = request.form["newLastData"]
@@ -736,8 +739,7 @@ def insert_film():
         insNewFilm = film.insert()
         conn.execute(insNewFilm, [
             {
-                'idfilm': idFilmDB, 'titolo': newTitle,
-                'is3d': bool(is3d), 'genere': newGenre,
+                'idfilm': idFilmDB, 'titolo': newTitle, 'genere': newGenre,
                 'trama': newPlot, 'datainizio': newStartData,
                 'datafine': newLastData, 'durata': newDuration,
                 'Paese': newCountry, 'Anno': newYearPubb,
