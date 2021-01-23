@@ -161,7 +161,6 @@ class Dato:
         self.data = []
 
     def add(self, n):
-        print("Dato: visite ", n)
         self.data.append(str(n))
 
     def tostr(self):
@@ -182,7 +181,6 @@ def load_user(user_id):
         real_id = int(user[1])
         real_email = str(user[0]).strip()
         real_ruolo = user['ruolo']
-        print("LoadUser " + real_email)
         return User(real_id, real_email, real_ruolo)
 
 
@@ -207,11 +205,11 @@ def home_page():
     try:
         inputGenere = request.form["inputGenere"]
     except:
-        errore("nessun genere selezionato")
+        print("nessun genere selezionato")
     try:
         inputTitle = (request.form["inputTitle"]).upper()
     except:
-        errore("nessun titolo inserito")
+        print("nessun titolo inserito")
 
     queryGeneri = select([film.c.genere])
     genere = conn.execute(queryGeneri).fetchall()
@@ -253,14 +251,16 @@ def home_page():
 @app.route('/film/<idFilm>', methods=['GET'])
 @login_required
 def base_film(idFilm):
+    now = datetime.now()
     conn = engineCliente.connect()
     # query a db per recuperare entità film con id idFilm
     queryFilm = select([film.c.titolo, film.c.trama, film.c.genere]).where(
         film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm}).fetchone()
 
-    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario]).where(
-        proiezione.c.idfilm == bindparam("idProiezioneRecuperato"))
+    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario, proiezione.c.is3d]).where(
+        and_(and_(proiezione.c.idfilm == bindparam("idProiezioneRecuperato"),\
+        proiezione.c.data >= datetime.date(now)), proiezione.c.orario >= datetime.time(now)))
     proiezioni = conn.execute(queryProiezioni, {'idProiezioneRecuperato': idFilm})
 
     conn.close()
@@ -338,18 +338,15 @@ def acquista():
     queryidSala = select([proiezione.c.idsala]). \
         where(proiezione.c.idproiezione == idProiezione)
     idSala = conn.execute(queryidSala).fetchone()
-    print(idSala)
 
     idUtente = current_user.get_id()
 
     for x in range(0, len(postiAcquistati)):
         numero = postiAcquistati[x]['numero']
         fila = postiAcquistati[x]['fila']
-        print(fila + " " + numero)
         queryIdPosto = select([posto.c.idposto]). \
             where(and_(and_(posto.c.numero == numero, posto.c.fila == fila), (posto.c.idsala == idSala[0])))
         idPosto = conn.execute(queryIdPosto).fetchone()
-        print(idPosto)
         # questo biglietto non dovrebbe esistere
         queryBiglietto = select([biglietto]). \
             where(and_(biglietto.c.idproiezione == idProiezione, biglietto.c.idposto == idPosto[0]))
@@ -413,18 +410,12 @@ def login():
         conn.close()
         if utente_log is None:
             return redirect("/")  # home_page()
+        login_user(User(utente_log['idutente'], utente_log['email'], utente_log['ruolo']))  # appoggio a flask_login
+        if int(current_user.get_ruolo()) == 0:
+            return redirect("/")
         else:
-            print(utente_log)
-
-            login_user(User(utente_log['idutente'], utente_log['email'], utente_log['ruolo']))  # appoggio a flask_login
-            active_users.append(utente_log)
-            print("Logged in successfully.")
-            if int(current_user.get_ruolo()) == 0:
-
-                return redirect("/")
-            else:
-                metadata.create_all(engineAdmin)
-                return redirect("/admin")
+            metadata.create_all(engineAdmin)
+            return redirect("/admin")
     return render_template('login.html')
 
 
@@ -440,12 +431,9 @@ def changePsw():
         .where(utente.c.idutente == current_user.id)
     oldPsw = conn.execute(queryPsw).fetchone()[0]
 
-    print(oldPsw)
-    print(form_oldpws)
     if form_oldpws == oldPsw:
         if form_newpws == form_newpws2:  # adesso funzia però non so farlo con le query del cazzo
             queryUpdate = "update utente set password =" + form_newpws + " where idutente =" + str(current_user.id)
-            # update(utente.c.password == form_newpws).where(utente.c.idutente == current_user.id)
             conn.execute(queryUpdate)
             conn.close()
             return redirect("/logout")
@@ -504,7 +492,6 @@ def admin_page():
     if current_user.ruolo == 0:
         return redirect("/")
     else:
-        print("admin_page " + current_user.email)
         conn = engineAdmin.connect()
         takenFilms = select([film]).order_by(film.c.idfilm.asc())
         queryTakenFilms = conn.execute(takenFilms).fetchall()
@@ -639,7 +626,6 @@ def genere_preferito():
         while i < len(generiFilmSingolo):
             j = 0
             trovato = 0
-            print(generiFilmSingolo[i])
             while j < len(arrayGeneri) and trovato == 0:
                 if generiFilmSingolo[i] == arrayGeneri[j]:
                     bigliettiPerGenere[j] = bigliettiPerGenere[j] + totBigliettiPerFilm
@@ -665,6 +651,48 @@ def genere_preferito():
 
 
 ##################################### GESTIONE TABELLA FILM ############################################
+
+
+@app.route('/film/update/<idFilm>', methods=['GET', 'POST'])
+@login_required
+def updateFilm(idFilm):
+    inputTitle = request.form["inputTitle" + idFilm]
+    inputGenre = request.form["inputGenre" + idFilm]
+    if request.form["input3d" + idFilm] == 'True':
+        input3d = True
+    else:
+        input3d = False
+    inputPlot = request.form["inputPlot" + idFilm]
+    inputStartData = request.form["inputStartDate" + idFilm]
+    inputEndData = request.form["inputEndDate" + idFilm]
+    inputDuration = request.form["inputDuration" + idFilm]
+    inputCountry = request.form["inputCountry" + idFilm]
+    inputYearPubb = request.form["inputYear" + idFilm]
+    if request.form["inputVM" + idFilm] == 'True':
+        inputMinAge = True
+    else:
+        inputMinAge = False
+    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
+                        isolation_level='REPEATABLE READ')
+    conn = eng.connect()
+    queryUpdate = update(film). \
+        where(film.c.idfilm == bindparam("expectedFilm")).values(titolo=bindparam("newInputTitle"),
+                                                                 genere=bindparam("newInputGenre"),
+                                                                 is3d=bindparam("newInput3d"),
+                                                                 trama=bindparam("newInputPlot"),
+                                                                 datainizio=bindparam("newInputStartDate"),
+                                                                 datafine=bindparam("newInputEndDate"),
+                                                                 durata=bindparam("newInputDuration"),
+                                                                 paese=bindparam("newInputCountry"),
+                                                                 anno=bindparam("newInputYear"),
+                                                                 vm=bindparam("newInputVm"))
+    conn.execute(queryUpdate, expectedFilm=idFilm, newInputTitle=inputTitle, newInputGenre=inputGenre,
+                 newInput3d=input3d, newInputPlot=inputPlot,
+                 newInputStartDate=inputStartData, newInputEndDate=inputEndData, newInputDuration=inputDuration,
+                 newInputCountry=inputCountry,
+                 newInputYear=inputYearPubb, newInputVm=inputMinAge)
+    conn.close()
+    return redirect("/admin")
 
 
 @app.route('/film/insert', methods=['GET', 'POST'])
@@ -704,9 +732,6 @@ def insert_film():
                 'vm': bool(newMinAge)
             }
         ])
-        print("Film non esistente, inserito")
-    else:
-        print("Il film esiste già")
 
     ############ AGGIORNAMENTO DIRECTOR MOVIE ############
     arrayNewDirectors = newMovDir.split(', ')
@@ -781,47 +806,8 @@ def insert_film():
 
     conn.close()
 
-    return redirect("/admin")
-
-
-@app.route('/film/update/<idFilm>', methods=['GET', 'POST'])
-@login_required
-def updateFilm(idFilm):
-    print("updateFilm")
-    inputTitle = request.form["inputTitle" + idFilm]
-    inputGenre = request.form["inputGenre" + idFilm]
-    inputPlot = request.form["inputPlot" + idFilm]
-    inputStartData = request.form["inputStartDate" + idFilm]
-    inputEndData = request.form["inputEndDate" + idFilm]
-    inputDuration = request.form["inputDuration" + idFilm]
-    inputCountry = request.form["inputCountry" + idFilm]
-    inputYearPubb = request.form["inputYear" + idFilm]
-    if request.form["inputVM" + idFilm] == 'True':
-        inputMinAge = True
-        print("FALSO")
-    else:
-        inputMinAge = False
-        print("VERO")
-    print(inputMinAge)
-    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
-                        isolation_level='REPEATABLE READ')
-    conn = eng.connect()
-    queryUpdate = update(film). \
-        where(film.c.idfilm == bindparam("expectedFilm")).values(titolo=bindparam("newInputTitle"),
-                                                                 genere=bindparam("newInputGenre"),
-                                                                 trama=bindparam("newInputPlot"),
-                                                                 datainizio=bindparam("newInputStartDate"),
-                                                                 datafine=bindparam("newInputEndDate"),
-                                                                 durata=bindparam("newInputDuration"),
-                                                                 paese=bindparam("newInputCountry"),
-                                                                 anno=bindparam("newInputYear"),
-                                                                 vm=bindparam("newInputVm"))
-    conn.execute(queryUpdate, expectedFilm=idFilm, newInputTitle=inputTitle, newInputGenre=inputGenre,
-                 newInputPlot=inputPlot,
-                 newInputStartDate=inputStartData, newInputEndDate=inputEndData, newInputDuration=inputDuration,
-                 newInputCountry=inputCountry,
-                 newInputYear=inputYearPubb, newInputVm=inputMinAge)
     conn.close()
+
     return redirect("/admin")
 
 
@@ -849,7 +835,6 @@ def ripubblicazione(idFilm):
 
 @app.route("/admin/tabella_proiezioni")
 def tabella_proiezioni():
-    print()
     if current_user.ruolo == 0:
         return redirect("/")
     else:
@@ -966,13 +951,11 @@ def tabella_utenti():
     if current_user.ruolo == 0:
         return redirect("/")
     else:
-        print("admin_page " + current_user.email)
         conn = engineAdmin.connect()
         takenUsers = select([utente]).order_by(asc(utente.c.idutente))
         queryTakenUsers = conn.execute(takenUsers).fetchall()
 
         conn.close()
-        print(queryTakenUsers)
         return render_template('admin_pages/tabelle_admin/tabella_utenti.html', arrayUsers=queryTakenUsers,
                                adminLogged=current_user.get_email())
 
@@ -982,7 +965,6 @@ def rendi_admin(idUtente):
     if current_user.ruolo == 0:
         return redirect("/")
     else:
-        print("update utente")
         #### rendere un utente admin
         eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
                             isolation_level='REPEATABLE READ')
@@ -1031,7 +1013,7 @@ def debug():
         # img_result = open('deer_decode.png', 'wb')
         # img_result.write(img_decode)
     finally:
-        print("--------------------------------------")
+        print("")
 
     return render_template("prova.html")  # , immagine=img, imgdec=img_result)
 

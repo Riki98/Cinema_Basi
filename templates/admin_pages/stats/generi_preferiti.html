@@ -1,8 +1,13 @@
 {% extends "admin_pages/base_admin.html" %}
 
 {% block pagebody %}
-<br>
-<h2>Preferenze del pubblico in base al genere, in percentuale</h2>
+<br><br><br><br>
+<div class="row">
+    <div class="col-3"></div><div class="col-6">
+        <h2>Preferenze del pubblico in base al genere, in percentuale</h2>
+    </div>
+</div>
+
 <br><br><br>
 
 <div class="row">
@@ -15,7 +20,7 @@
             <tr>
                 <th></th>
                 {% for f in arrayPerGeneri%}
-                <th style="background-color:gainsboro">
+                <th>
                     <p>{{f}}</p>
                 </th>
                 {% endfor %}
