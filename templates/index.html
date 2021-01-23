@@ -6,7 +6,7 @@
     <div class="row d-flex justify-content-around">
 
         <!-- Button trigger modal SIGN IN -->
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAccesso">
+        <button type="button" id="modalSignin" class="btn btn-primary" data-toggle="modal" data-target="#modalAccesso">
             Sign In
         </button>
         <!-- Button trigger modal SIGN UP -->
@@ -59,7 +59,6 @@
                     </div>
                     <div class="col-2"></div>
                 </div>
-
                 <!-- Password -->
 
                 <div class="row">
@@ -77,10 +76,18 @@
                     </div>
                     <div class="col-2"></div>
                 </div>
+                <div class="row">
+                    <div class="col-1"></div>
+                    <div class="col">
+                        {% if log == 1 %}
+                            <p id="errorLog" style="color: red">Password errata oppure non sei registrato!</p>
+                        {% endif %}
+                    </div>
+                </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary btn-block btn-lg">Sign in</button>
+                    <button type="submit" class="btn btn-primary btn-block">Sign in</button>
                 </div>
             </form>
         </div>
@@ -103,7 +110,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                Effettua l'accesso per riuscire a prenotare!
+                Registrati per riuscire a prenotare!
             </div>
 
             <!-- Form di registrazione -->
@@ -182,11 +189,12 @@
                         </div>
                     </div>
                     <div class="col-1"></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary btn-lg btn-block">Sign up</button>
-                    </div>
                 </div>
+
+                    <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary btn-block">Sign up</button>
+                    </div>
             </form>
             <!-- Fine form di registrazione -->
         </div>

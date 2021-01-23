@@ -19,7 +19,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
 # TYPE import
 from array import *
-import datetime
+from datetime import datetime
 import decimal
 import string
 import base64
@@ -32,9 +32,10 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engineVisistatore = create_engine('postgres+psycopg2://visitatore:0000@localhost:5432/CinemaBasi')
-engineCliente = create_engine('postgres+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi')
-engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi')
+
+engineVisistatore = create_engine('postgres+psycopg2://utentenonloggato:0000@localhost:5432/CinemaBasi')
+engineCliente = create_engine('postgres+psycopg2://clienteloggato:1234@localhost:5432/CinemaBasi')
+engineAdmin = create_engine('postgres+psycopg2://adminloggato:12345678@localhost:5432/CinemaBasi')
 
 metadata = MetaData()
 
@@ -84,6 +85,7 @@ proiezione = Table('proiezione', metadata,
                    Column('orario', Time),
                    Column('idsala', Integer),
                    Column('idfilm', Integer),
+                   Column('is3d', Boolean),
                    Column('idproiezione', Integer, primary_key=True),
                    Column('data', Date),
                    )
@@ -117,7 +119,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-active_users = []
+log_try = 0
 
 
 class User(UserMixin):
@@ -243,7 +245,7 @@ def home_page():
         return render_template('login.html', movies=films,
                                availableGeneri=array)  # stessa pagina rimossa dei btn log in e register
     else:
-        return render_template('index.html', movies=films, availableGeneri=array)
+        return render_template('index.html', movies=films, availableGeneri=array, log=log_try)
 
 
 @app.route('/film/<idFilm>', methods=['GET'])
@@ -407,13 +409,16 @@ def login():
             and_(utente.c.email == bindparam('expectedEmail'), utente.c.password == bindparam('expectedPAss')))
         utente_log = conn.execute(queryControlUser, expectedEmail=form_email, expectedPAss=form_passw).fetchone()
         conn.close()
+        global log_try
+        log_try = 0
         if utente_log is None:
+            log_try = 1
+            print(log_try)
             return redirect("/")  # home_page()
         else:
             print(utente_log)
 
             login_user(User(utente_log['idutente'], utente_log['email'], utente_log['ruolo']))  # appoggio a flask_login
-            active_users.append(utente_log)
             print("Logged in successfully.")
             if int(current_user.get_ruolo()) == 0:
 
@@ -483,7 +488,6 @@ def register():
     conn.close()
     User.authenticated = True
     login_user(User(myid, mailreg, 0))  # appoggio a flask_login
-    active_users.append(myid)
     return home_page()
 
 
@@ -666,7 +670,6 @@ def updateFilm(idFilm):
     inputGenre = request.form["inputGenre" + idFilm]
     if request.form["input3d" + idFilm] == 'True':
         input3d = True
-        print("DC")
     else:
         input3d = False
     inputPlot = request.form["inputPlot" + idFilm]
@@ -677,10 +680,8 @@ def updateFilm(idFilm):
     inputYearPubb = request.form["inputYear" + idFilm]
     if request.form["inputVM" + idFilm] == 'True':
         inputMinAge = True
-        print("FALSO")
     else:
         inputMinAge = False
-        print("VERO")
     print(inputMinAge)
     eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')

@@ -1,11 +1,20 @@
-let lastTitolo = "";
-let lastDate = "";
-var emptyDate = 1;
-var emptyTime = 1;
-var movieComplete = 0;
+
+$( document ).ready(function() {
+    if($('#errorLog').val() != null){
+        $('#modalSignin').click();
+    }
+    $('#inputTitle').val("Inserire titolo");
+});
+
+$('#inputTitle').on('click', function (){
+    $('#inputTitle').val("");
+});
 
 
 
+
+
+/*
 $('.titlefilm').on('click', function(){
   movieComplete =0;
   var movie = { 'title' : $(this).html() }

@@ -33,6 +33,11 @@
                        {{spettacolo.orario}}
                 </td>
                 <td>
+                    {% if spettacolo.is3d %}
+                        <b>3D</b>
+                        {% endif %}
+                </td>
+                <td>
                     <a href="/prenotazione/{{spettacolo.idproiezione}}">PRENTOTA ORA</a>
                 </td>
 
