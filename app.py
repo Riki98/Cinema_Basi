@@ -588,6 +588,8 @@ def occupazione_sala():
             percentuali.append(0)
         i = i + 1
 
+    conn.close()
+
     return render_template("/admin_pages/stats/occupazione_sale.html", films=listaFilms, media=percentuali)
 
 
@@ -602,7 +604,7 @@ def dividi_generi(array_generi):
 @login_required
 def genere_preferito():
     conn = engineAdmin.connect()
-    #array contenente coppie di (totale biglietti per film, titolo film)
+    #array contenente (totale biglietti per film, titolo film, genere del film)
     bigliettiPerFilm = conn.execute(select([func.count(biglietto.c.idposto), film.c.titolo, film.c.genere]).select_from(biglietto.
         join(proiezione, biglietto.c.idproiezione == proiezione.c.idproiezione).
         join(film, proiezione.c.idfilm == film.c.idfilm)).\
@@ -616,20 +618,41 @@ def genere_preferito():
     #vado a prendermi e suddividermi tutti i generi
     queryGeneri = select([film.c.genere])
     generi = conn.execute(queryGeneri).fetchall()
-    array = []
+    arrayGeneri = []
     for g in generi:
         temp = g[0].split(', ')
         for t in temp:
-            array.append(t)
-    array = set(array)
+            arrayGeneri.append(t)
+    arrayGeneri = set(arrayGeneri)
 
     # Il contenuto di questo array all'indice 'x' corrisponde al numero di biglietti venduti al genere che troviamo allo stesso indice (x) dell'array 'generi'
-    bigliettiPerGenere = [len(array)]
+    bigliettiPerGenere = [0] * len(arrayGeneri)
+    for n in bigliettiPerFilm:
+        totBiglietti = n[0]
+        generiFilmSingolo = dividi_generi(n[2])
+        i = 0
+        while i < len(generiFilmSingolo):
+            j = 0
+            trovato = 0
+            while j < len(arrayGeneri) & trovato == 0:
+                if generiFilmSingolo[i] == arrayGeneri[j]:
+                    bigliettiPerGenere[j] += totBiglietti
+                    i += 1
+                    trovato = 1
+                else:
+                    j += 1
 
-    
+    print("\n\n\n\n")
+    print("------------------------------------------------------------")
+    print("\n\n\n\n")
 
-    return redirect("/")
+    for n in bigliettiPerGenere:
+        print(n)
+    print("\n\n\n----------------------------")
 
+    conn.close()
+
+    return render_template("/admin/stats/generi_preferiti.html")
 
 ##################################### GESTIONE TABELLA FILM ############################################
 
