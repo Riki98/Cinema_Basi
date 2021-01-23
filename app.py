@@ -32,9 +32,10 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-engineVisistatore = create_engine('postgres+psycopg2://visitatore:0000@localhost:5432/CinemaBasi')
-engineCliente = create_engine('postgres+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi')
-engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi')
+
+engineVisistatore = create_engine('postgres+psycopg2://utentenonloggato:0000@localhost:5432/CinemaBasi')
+engineCliente = create_engine('postgres+psycopg2://clienteloggato:1234@localhost:5432/CinemaBasi')
+engineAdmin = create_engine('postgres+psycopg2://adminloggato:12345678@localhost:5432/CinemaBasi')
 
 metadata = MetaData()
 
