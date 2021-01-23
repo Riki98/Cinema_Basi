@@ -18,14 +18,11 @@
         <p class="filmtitle">TITOLO: {{ movie.titolo }} </p>
         <p class="filmtitle">DURATA: {{ movie.durata }} </p>
         <p>Giorno: {{ proiezione.data }} </p>
-        <p>Ora: {{ proiezione.hour }}:{{ proiezione.minute }}</p>
-
-        <select id="numPosti" name="numPosti">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-        </select>
+        <p>Ora: {{ proiezione.orario }}</p>
+        <div class="row"><div class="col-7"></div><div class="col">
+        <button id="btnReset" type="button" class="btn btn-danger btn-sm">Deseleziona posti</button>
+        </div></div>
+           <br><br>
         <table class="sala table table-sm table-bordered table-dark">
 <tr>
     <th></th>
@@ -47,13 +44,14 @@
         <td class="{{ 'occupato' if posti[x][y] else 'libero'  }}" data-fila="{{string.ascii_uppercase[x]}}" data-numero="{{y}}"> </td>
 
         {% endfor %}
+        
 
     </tr>
    {% endfor %}
         </table>
         <form action="/acquista" method="POST">
-            <input id="posti" name="posti" type="text" value="" hidden>
-            <input name="idproiezione" type="text" value="{{ proiezione.idproiezione }}" hidden>
+            <input id="posti" name="posti" type="text" value="">
+            <input name="idproiezione" type="text" value="{{ proiezione.idproiezione }}">
             <button type="submit">ACQUISTA</button>
         </form>
 

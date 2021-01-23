@@ -18,6 +18,7 @@ from sqlalchemy import func
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
 # TYPE import
+from array import *
 import datetime
 import decimal
 import string
@@ -191,12 +192,10 @@ def alchemyencoder(obj):
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
 
-
 # render alla pagina principale
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     # apertura connessione al DB
-    print("almeno qua")
     conn = engineVisistatore.connect()
     oggi = date.today()
     inputGenere = None
@@ -305,7 +304,7 @@ def prenotazione(idProiezione):
 
 def revertAcquista(postiAcquistati, idProiezione, lastX, idUtente, idSala):
     delete = biglietto.delete()
-    conn = engineCliente.execute()
+    conn = engineCliente.connect()
     for x in range(0, lastX - 1):
         numero = postiAcquistati[x]['numero']
         fila = postiAcquistati[x]['fila']
@@ -335,16 +334,18 @@ def acquista():
     queryidSala = select([proiezione.c.idsala]). \
         where(proiezione.c.idproiezione == idProiezione)
     idSala = conn.execute(queryidSala).fetchone()
+    print(idSala)
 
     idUtente = current_user.get_id()
 
     for x in range(0, len(postiAcquistati)):
         numero = postiAcquistati[x]['numero']
         fila = postiAcquistati[x]['fila']
+        print(fila + " " + numero)
         queryIdPosto = select([posto.c.idposto]). \
             where(and_(and_(posto.c.numero == numero, posto.c.fila == fila), (posto.c.idsala == idSala[0])))
         idPosto = conn.execute(queryIdPosto).fetchone()
-
+        print(idPosto)
         # questo biglietto non dovrebbe esistere
         queryBiglietto = select([biglietto]). \
             where(and_(biglietto.c.idproiezione == idProiezione, biglietto.c.idposto == idPosto[0]))
@@ -390,8 +391,6 @@ def areaUtente():
                         "inner join film on film.idFilm=proiezione.idFilm " \
                         "where biglietto.idUtente=" + str(current_user.id) + ";"
     biglietti = conn.execute(queryBigliettiTot).fetchall()
-    for b in biglietti:
-        print(b)
     conn.close()
     return render_template('areaUtente.html', biglietti=biglietti, u=userInfo)
 
@@ -400,9 +399,7 @@ def areaUtente():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     metadata.create_all(engineCliente)
-    print("prime")
     conn = engineCliente.connect()
-    print("cose")
     if request.method == 'POST':
         form_email = str(request.form['mailLogin'])
         form_passw = str(request.form['passwordLogin'])
@@ -515,7 +512,8 @@ def admin_page():
 ################################################## GESTIONE STATISTICHE #############################################################
 
 # STATISTICA: definizione per la funzione usata per calcolare quanti biglietti sono stati venduti per film
-@app.route("/ticket_sold", methods=['GET'])
+@app.route("/ticket_sold", methods=['GET', 'POST'])
+@login_required
 def biglietti_venduti():
     conn = engineAdmin.connect()
     # query di divisione dei giorni per ogni proiezione
@@ -547,25 +545,90 @@ def biglietti_venduti():
     stats = json.dumps([dato.__dict__ for dato in array])
     giorni = json.dumps([giorno[0].strftime('%m/%d/%Y') for giorno in giorni])
     conn.close()
-    return render_template("admin_pages/stats/tickets_sold.html", stats=stats, giorni=giorni)
+    return render_template("admin_pages/stats/biglietti_venduti.html", stats=stats, giorni=giorni)
 
 
-@app.route("/occupazione_sala", methods=['GET'])
+# STATISTICA: definizione per la funzione usata per calcolare la percentuale di occupazione delle sale per film
+@app.route("/occupazione_sala", methods=['GET', 'POST'])
+@login_required
 def occupazione_sala():
     conn = engineAdmin.connect()
-    # numero biglietti per film
-    # numero totale di posti occupati su totale disponibili per sala
 
-    numPostoPerSala = conn.execute(select([sala.c.numfila, sala.c.numcolonne]).order_by(sala.c.idsala)).fetchall()
+    numPostoPerSala = conn.execute(
+        select([sala.c.idsala, sala.c.numfila, sala.c.numcolonne]).order_by(sala.c.idsala)).fetchall()
 
-    bigliettiTot = conn.execute(select([func.count(biglietto.c.idproiezione)]).select_from(
-        biglietto.join(proiezione, proiezione.c.idproiezione == biglietto.c.idproiezione)).group_by(
-        proiezione.c.idfilm)).fetchall()
+    arrayPostiTot = []
+    for b in numPostoPerSala:
+        arrayPostiTot.append([b["idsala"], b["numfila"] * b["numcolonne"]])
 
-    for b in bigliettiTot:
+    bigliettiPerProiezione = conn.execute(select(
+        [func.count(biglietto.c.idproiezione), proiezione.c.idsala, biglietto.c.idproiezione,
+         proiezione.c.idfilm]).select_from(
+        biglietto.join(proiezione, biglietto.c.idproiezione == proiezione.c.idproiezione).join(sala,
+                                                                                               proiezione.c.idsala == sala.c.idsala)).group_by(
+        proiezione.c.idproiezione, biglietto.c.idproiezione, proiezione.c.idfilm)).fetchall()
+
+    listaFilms = conn.execute(select([film]).order_by(film.c.idfilm)).fetchall()
+    totPostiFilm = []
+    totBigFilm = []
+    for f in listaFilms:
+        totPostiFilm.append(0)
+        totBigFilm.append(0)
+
+    for b in bigliettiPerProiezione:
+        totPostiFilm[b["idfilm"] - 1] += arrayPostiTot[b["idsala"] - 1][1]
+        totBigFilm[b["idfilm"] - 1] += b[0]
+
+    percentuali = []
+    i = 0
+    for b in totBigFilm:
+        if totPostiFilm[i] != 0:
+            percentuali.append(round((b / totPostiFilm[i]) * 100, 1))
+        else:
+            percentuali.append(0)
+        i = i + 1
+
+    return render_template("/admin_pages/stats/occupazione_sale.html", films=listaFilms, media=percentuali)
+
+
+# STATISTICA: definizione per la funzione usata per calcolare quale genere viene preferito dai clienti
+def dividi_generi(array_generi):
+    array = array_generi.split(', ')
+    array = set(array)
+    return array
+
+
+@app.route("/genere_preferito", methods=['GET', 'POST'])
+@login_required
+def genere_preferito():
+    conn = engineAdmin.connect()
+    #array contenente coppie di (totale biglietti per film, titolo film)
+    bigliettiPerFilm = conn.execute(select([func.count(biglietto.c.idposto), film.c.titolo, film.c.genere]).select_from(biglietto.
+        join(proiezione, biglietto.c.idproiezione == proiezione.c.idproiezione).
+        join(film, proiezione.c.idfilm == film.c.idfilm)).\
+        group_by(film.c.titolo, film.c.genere)).fetchall()
+
+    print("\n")
+    for b in bigliettiPerFilm:
         print(b)
+    print("\n")
 
-    return redirect("/admin")
+    #vado a prendermi e suddividermi tutti i generi
+    queryGeneri = select([film.c.genere])
+    generi = conn.execute(queryGeneri).fetchall()
+    array = []
+    for g in generi:
+        temp = g[0].split(', ')
+        for t in temp:
+            array.append(t)
+    array = set(array)
+
+    # Il contenuto di questo array all'indice 'x' corrisponde al numero di biglietti venduti al genere che troviamo allo stesso indice (x) dell'array 'generi'
+    bigliettiPerGenere = [len(array)]
+
+    
+
+    return redirect("/")
 
 
 ##################################### GESTIONE TABELLA FILM ############################################

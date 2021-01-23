@@ -1,0 +1,32 @@
+{% extends "admin_pages/base_admin.html" %}
+
+{% block pagebody %}
+<br><br><br><br>
+<div class="row">
+    <div class="col-3">
+
+    </div>
+    <div class="col">
+        <table class="sala table table-sm table-bordered table-dark">
+            <tr>
+                <th></th>
+                {% for f in films%}
+                    <th style="background-color:gainsboro">
+                        <p>{{f.titolo}}</p>
+                    </th>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td></td>
+                {% for m in media%}
+                    <td> {{m}} %</td>
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+    <div class="col-3">
+
+    </div>
+</div>
+
+{% endblock %}
