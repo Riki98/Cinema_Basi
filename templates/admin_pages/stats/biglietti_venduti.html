@@ -1,53 +1,62 @@
 {% extends "admin_pages/base_admin.html" %}
 
 {% block pagebody %}
+<br><br><br><br><br><br><br>
+<div class="row">
+    <div class="col-1"></div>
+    <div class="col-10">
 
-<div id="chart"></div>
-    {{giorni | tojson}}
-        <script>
-            var options = {
-            series: {{stats | safe}},
-            chart: {
-                type: 'bar',
-                height: 350,
-                stacked: true,
-                toolbar:
-                    {
-                        show: true
+        <div id="chart"></div>
+            {{giorni | tojson}}
+                <script>
+                    var options = {
+                    series: {{stats | safe}},
+                    chart: {
+                        type: 'bar',
+                        height: 350,
+                        stacked: true,
+                        toolbar:
+                            {
+                                show: true
+                            },
+                        zoom: {
+                            enabled: true
+                        }
                     },
-                zoom: {
-                    enabled: true
-                }
-            },
-            responsive: [{
-                breakpoint: 480,
-                options: {
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            legend: {
+                                position: 'bottom',
+                                offsetX: -10,
+                                offsetY: 0
+                            }
+                        }
+                    }],
+                    plotOptions: {
+                        bar: {horizontal: false},
+                    },
+                xaxis: {
+                    type:
+                        'datetime',
+                        categories:{{giorni | safe}}
+                    },
                     legend: {
-                        position: 'bottom',
-                        offsetX: -10,
-                        offsetY: 0
+                        position: 'right',
+                        offsetY: 40
+                    },
+                    fill: {
+                        opacity: 1
                     }
-                }
-            }],
-            plotOptions: {
-                bar: {horizontal: false},
-            },
-        xaxis: {
-            type:
-                'datetime',
-                categories:{{giorni | safe}}
-            },
-            legend: {
-                position: 'right',
-                offsetY: 40
-            },
-            fill: {
-                opacity: 1
-            }
-        };
+                };
 
-        var chart = new ApexCharts(document.querySelector("#chart"), options);
-        chart.render();
-    </script>
+                var chart = new ApexCharts(document.querySelector("#chart"), options);
+                chart.render();
+            </script>
+
+
+    </div>
+    <div class="col-1"></div>
+</div>
 
 {% endblock %}
