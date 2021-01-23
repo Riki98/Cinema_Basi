@@ -652,7 +652,7 @@ def genere_preferito():
 
     conn.close()
 
-    return render_template("/admin/stats/generi_preferiti.html")
+    return render_template("/admin_pages/stats/generi_preferiti.html")
 
 ##################################### GESTIONE TABELLA FILM ############################################
 
