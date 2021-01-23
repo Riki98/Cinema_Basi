@@ -6,7 +6,9 @@ from datetime import datetime, date
 from sqlite3.dbapi2 import Binary
 
 import flask
-from flask import Flask, render_template, request, json, redirect, url_for
+from flask import Flask, render_template, request, json, redirect, url_for, session
+
+import eel
 
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
@@ -117,6 +119,9 @@ login_manager.login_view = 'login'
 
 active_users = []
 
+# variabile globale che mi serve per sapere se ci sono errori senza il bisogno (problematico) di passarli attraverso la redirect
+erroriCompilazione = ''
+
 
 class User(UserMixin):
     def __init__(self, id, email, ruolo):
@@ -202,11 +207,11 @@ def home_page():
     try:
         inputGenere = request.form["inputGenere"]
     except:
-        print("nessun genere selezionato")
+        errore("nessun genere selezionato")
     try:
         inputTitle = (request.form["inputTitle"]).upper()
     except:
-        print("nessun titolo inserito")
+        errore("nessun titolo inserito")
 
     queryGeneri = select([film.c.genere])
     genere = conn.execute(queryGeneri).fetchall()
@@ -424,7 +429,7 @@ def login():
 
 
 # CHANGE PSW
-@app.route('/changePsw', methods=['GET', 'POST'])
+@app.route('/areaUtente/changePsw', methods=['GET', 'POST'])
 @login_required
 def changePsw():
     conn = engineCliente.connect()
@@ -662,53 +667,6 @@ def genere_preferito():
 ##################################### GESTIONE TABELLA FILM ############################################
 
 
-@app.route('/film/update/<idFilm>', methods=['GET', 'POST'])
-@login_required
-def updateFilm(idFilm):
-    print("updateFilm")
-    inputTitle = request.form["inputTitle" + idFilm]
-    inputGenre = request.form["inputGenre" + idFilm]
-    if request.form["input3d" + idFilm] == 'True':
-        input3d = True
-        print("DC")
-    else:
-        input3d = False
-    inputPlot = request.form["inputPlot" + idFilm]
-    inputStartData = request.form["inputStartDate" + idFilm]
-    inputEndData = request.form["inputEndDate" + idFilm]
-    inputDuration = request.form["inputDuration" + idFilm]
-    inputCountry = request.form["inputCountry" + idFilm]
-    inputYearPubb = request.form["inputYear" + idFilm]
-    if request.form["inputVM" + idFilm] == 'True':
-        inputMinAge = True
-        print("FALSO")
-    else:
-        inputMinAge = False
-        print("VERO")
-    print(inputMinAge)
-    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
-                        isolation_level='REPEATABLE READ')
-    conn = eng.connect()
-    queryUpdate = update(film). \
-        where(film.c.idfilm == bindparam("expectedFilm")).values(titolo=bindparam("newInputTitle"),
-                                                                 genere=bindparam("newInputGenre"),
-                                                                 is3d=bindparam("newInput3d"),
-                                                                 trama=bindparam("newInputPlot"),
-                                                                 datainizio=bindparam("newInputStartDate"),
-                                                                 datafine=bindparam("newInputEndDate"),
-                                                                 durata=bindparam("newInputDuration"),
-                                                                 paese=bindparam("newInputCountry"),
-                                                                 anno=bindparam("newInputYear"),
-                                                                 vm=bindparam("newInputVm"))
-    conn.execute(queryUpdate, expectedFilm=idFilm, newInputTitle=inputTitle, newInputGenre=inputGenre,
-                 newInput3d=input3d, newInputPlot=inputPlot,
-                 newInputStartDate=inputStartData, newInputEndDate=inputEndData, newInputDuration=inputDuration,
-                 newInputCountry=inputCountry,
-                 newInputYear=inputYearPubb, newInputVm=inputMinAge)
-    conn.close()
-    return redirect("/admin")
-
-
 @app.route('/film/insert', methods=['GET', 'POST'])
 def insert_film():
     newTitle = request.form["newTitle"]
@@ -819,10 +777,51 @@ def insert_film():
     #        'img' : newImage
     #    }
     # ])
-    print("Immagine salvata")
+    # print("Immagine salvata")
 
     conn.close()
 
+    return redirect("/admin")
+
+
+@app.route('/film/update/<idFilm>', methods=['GET', 'POST'])
+@login_required
+def updateFilm(idFilm):
+    print("updateFilm")
+    inputTitle = request.form["inputTitle" + idFilm]
+    inputGenre = request.form["inputGenre" + idFilm]
+    inputPlot = request.form["inputPlot" + idFilm]
+    inputStartData = request.form["inputStartDate" + idFilm]
+    inputEndData = request.form["inputEndDate" + idFilm]
+    inputDuration = request.form["inputDuration" + idFilm]
+    inputCountry = request.form["inputCountry" + idFilm]
+    inputYearPubb = request.form["inputYear" + idFilm]
+    if request.form["inputVM" + idFilm] == 'True':
+        inputMinAge = True
+        print("FALSO")
+    else:
+        inputMinAge = False
+        print("VERO")
+    print(inputMinAge)
+    eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
+                        isolation_level='REPEATABLE READ')
+    conn = eng.connect()
+    queryUpdate = update(film). \
+        where(film.c.idfilm == bindparam("expectedFilm")).values(titolo=bindparam("newInputTitle"),
+                                                                 genere=bindparam("newInputGenre"),
+                                                                 trama=bindparam("newInputPlot"),
+                                                                 datainizio=bindparam("newInputStartDate"),
+                                                                 datafine=bindparam("newInputEndDate"),
+                                                                 durata=bindparam("newInputDuration"),
+                                                                 paese=bindparam("newInputCountry"),
+                                                                 anno=bindparam("newInputYear"),
+                                                                 vm=bindparam("newInputVm"))
+    conn.execute(queryUpdate, expectedFilm=idFilm, newInputTitle=inputTitle, newInputGenre=inputGenre,
+                 newInputPlot=inputPlot,
+                 newInputStartDate=inputStartData, newInputEndDate=inputEndData, newInputDuration=inputDuration,
+                 newInputCountry=inputCountry,
+                 newInputYear=inputYearPubb, newInputVm=inputMinAge)
+    conn.close()
     return redirect("/admin")
 
 
@@ -841,7 +840,7 @@ def cancellazionePubblicazioneFilm(idFilm):
 def ripubblicazione(idFilm):
     conn = engineAdmin.connect()
     queryDelete = film.update().where(film.c.idfilm == bindparam("filmTaken")).values({"shown": 1})
-    conn.execute(queryDelete, {'filmTaken': idFilm})
+    conn.execute(queryDelete, filmTaken=idFilm)
     conn.close()
     return redirect("/admin")
 
@@ -850,38 +849,65 @@ def ripubblicazione(idFilm):
 
 @app.route("/admin/tabella_proiezioni")
 def tabella_proiezioni():
+    print()
     if current_user.ruolo == 0:
         return redirect("/")
     else:
-        print("admin_page " + current_user.email)
+        if erroriCompilazione != '':
+            errore = erroriCompilazione
+            erroriCompilazione = None
         conn = engineAdmin.connect()
         queryFilms = select([film.c.titolo])
         films = conn.execute(queryFilms).fetchall()
         takenScreening = select([proiezione.c.idproiezione, proiezione.c.idfilm, proiezione.c.idsala, proiezione.c.data,
-                                 proiezione.c.orario, film.c.titolo]).where(
+                                 proiezione.c.orario, proiezione.c.is3d, film.c.titolo]).where(
             proiezione.c.idfilm == film.c.idfilm).order_by(asc(proiezione.c.idproiezione))
         queryTakenScreening = conn.execute(takenScreening).fetchall()
         conn.close()
         print(queryTakenScreening)
         return render_template('admin_pages/tabelle_admin/tabella_proiezioni.html', arrayScreening=queryTakenScreening,
-                               adminLogged=current_user.get_email(), films=films)
+                               adminLogged=current_user.get_email(), films=films, error=errore)
 
 
 @app.route('/proiezione/update/<idProiezione>', methods=['GET', 'POST'])
 @login_required
 def updateScreening(idProiezione):
-    inputRoom = request.form["inputRoom" + idProiezione]
-    inputDay = request.form["inputDay" + idProiezione]
-    inputTime = request.form["inputTime" + idProiezione]
+    inputSala = request.form["inputRoom" + idProiezione]
+    inputGiorno = request.form["inputDay" + idProiezione]
+    inputOra = request.form["inputTime" + idProiezione]
+    input3d = request.form["input3d" + idProiezione]
+
+    if isinstance(inputSala, int) == False:
+        errore = "Input della sala non corretto"
+        return redirect(url_for("/admin/tabella_proiezioni", errore=errore))
+
+    if inputGiorno >= str(date.today()):
+        print("giorno ok")
+    elif inputGiorno <= str(date.today()):
+        errore = json.dumps({"Giorno nel passato non valido"})
+        return redirect(url_for("/admin/tabella_proiezioni", messages=json.loads(errore)))
+    else:
+        errore = json.dumps({"Input della data non corretto"})
+        return redirect(url_for("/admin/tabella_proiezioni", messages=json.loads(errore)))
+
+    if input3d == "Si":
+        nuovoInput3d = True
+    elif input3d == "No":
+        nuovoInput3d = False
+    else:
+        errore = "Input 3D non corretto"
+        return redirect("/admin/tabella_proiezioni")
+
     eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
                         isolation_level='REPEATABLE READ')
     conn = eng.connect()
     queryUpdate = update(proiezione). \
-        where(proiezione.c.idproiezione == bindparam("expectedScreening")).values(idsala=bindparam("newInputRoom"),
-                                                                                  data=bindparam("newInputDay"),
-                                                                                  orario=bindparam("newInputTime"))
-    conn.execute(queryUpdate, expectedScreening=idProiezione, newInputRoom=inputRoom, newInputDay=inputDay,
-                 newInputTime=inputTime)
+        where(proiezione.c.idproiezione == bindparam("proiezione")).values(idsala=bindparam("newInputRoom"),
+                                                                           data=bindparam("newInputDay"),
+                                                                           orario=bindparam("newInputTime"),
+                                                                           is3d=bindparam("new3d"))
+    conn.execute(queryUpdate, proiezione=idProiezione, newInputRoom=inputSala, newInputDay=inputGiorno,
+                 newInputTime=inputOra, new3d=nuovoInput3d)
     conn.close()
     return redirect("/admin/tabella_proiezioni")
 
@@ -895,6 +921,28 @@ def insertScreening():
     inputOra = request.form["ora"]
     inputSala = request.form["sala"]
     inputGiorno = request.form["giorno"]
+    input3d = request.form["3d"]
+
+    if isinstance(inputSala, int) == False:
+        errore("Input della sala non corretto")
+        return redirect("/admin/tabella_proiezioni")
+
+    if inputGiorno >= str(date.today()):
+        print("giorno ok")
+    elif inputGiorno <= str(date.today()):
+        errore("Giorno nel passato non valido")
+        return redirect("/admin/tabella_proiezioni")
+    else:
+        errore("Input della data non corretto")
+        return redirect("/admin/tabella_proiezioni")
+
+    if input3d == "Si":
+        nuovoInput3d = True
+    elif input3d == "No":
+        nuovoInput3d = False
+    else:
+        errore("Input 3D non corretto")
+        return redirect("/admin/tabella_proiezioni")
 
     queryIdFilm = select([film.c.idfilm]).where(film.c.titolo == bindparam("nuovoTitolo"))
     nuovoIdFilm = conn.execute(queryIdFilm, nuovoTitolo=inputTitolo).fetchone()[0]
@@ -903,9 +951,10 @@ def insertScreening():
                                                  idfilm=bindparam("nuovoFilm"),
                                                  idproiezione=bindparam("nuovaIdproiezione"),
                                                  idsala=bindparam("nuovaSala"),
-                                                 data=bindparam("nuovaData"))
+                                                 data=bindparam("nuovaData"),
+                                                 is3d=bindparam("nuovo3d"))
     conn.execute(insertProiezione, nuovoOrario=inputOra, nuovoFilm=nuovoIdFilm, nuovaIdproiezione=maxId[0] + 1,
-                 nuovaSala=inputSala, nuovaData=inputGiorno)
+                 nuovaSala=inputSala, nuovaData=inputGiorno, nuovo3d=nuovoInput3d)
     return redirect("/admin/tabella_proiezioni")
 
 

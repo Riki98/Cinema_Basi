@@ -47,14 +47,6 @@
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                        <label for="is3d">3D</label>
-                                        <select name="is3d"
-                                                id="is3d" class="form-control">
-                                            <option value="False">No</option>
-                                            <option value="True">Si</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-6">
                                         <label for="newMinAge"><14</label>
                                         <select name="newMinAge"
                                                 id="newMinAge" class="form-control">
@@ -150,7 +142,6 @@
                 <th scope="col">Titolo</th>
                 <th scope="col">Genere</th>
                 <th scope="col">Trama</th>
-                <th scope="col">3D</th>
                 <th scope="col">Data Inizio</th>
                 <th scope="col">Data Fine</th>
                 <th scope="col">Durata</th>
@@ -168,7 +159,6 @@
                 <td>{{row.titolo}}</td>
                 <td>{{row.genere}}</td>
                 <td><p> {%for x in range(0, 120)%}{{row.trama[x]}}{%endfor%}...</p></td>
-                <td>{{row.is3d}}</td>
                 <td>{{row.datainizio}}</td>
                 <td>{{row.datafine}}</td>
                 <td>{{row.durata}}</td>
@@ -227,19 +217,6 @@
                                                            id="inputPlot{{row.idfilm}}" value="{{row.trama}}">
                                                 </div>
                                                 <div class="form-row">
-                                                    <div class="form-group col-md-6">
-                                                        <label for="input3d{{row.idfilm}}">3D</label>
-                                                        <select name="input3d{{row.idfilm}}"
-                                                                id="input3d{{row.idfilm}}" class="form-control">
-                                                            <option value="False">No</option>
-                                                            <option value="True"
-                                                                    {%if row.is3d %}
-                                                                    selected
-                                                                    {%endif%}>Si
-                                                            </option>
-
-                                                        </select>
-                                                    </div>
                                                     <div class="form-group col-md-6">
                                                         <label for="inputVM{{row.idfilm}}"><14</label>
                                                         <select name="inputVM{{row.idfilm}}"

@@ -21,8 +21,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{url_for('insertScreening')}}" method="POST"
-                          class="form-signup">
+                    <form action="{{url_for('insertScreening')}}" method="POST" class="form-signup">
                         <div class="row">
                             <div class="col-1"></div>
                             <div class="col">
@@ -35,48 +34,62 @@
                                         <option>{{ f.titolo }}</option>
                                         {% endfor %}
                                     </select>
-                                    </div>
                                 </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="sala">Sala</label>
-                                        <input name="sala" type="text"
-                                               class="form-control"
-                                               id="sala">
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <label for="giorno">Giorno</label>
-                                    <input name="giorno" type="text"
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="sala">Sala</label>
+                                    <input name="sala" type="text"
                                            class="form-control"
-                                           id="giorno">
+                                           id="sala">
                                 </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="ora">Ora</label>
-                                        <input name="ora" type="text"
-                                               class="form-control"
-                                               id="ora">
-                                    </div>
+                            </div>
+                            <div class="form-row">
+                                <label for="giorno">Giorno</label>
+                                <input name="giorno" type="text"
+                                       class="form-control"
+                                       id="giorno" placeholder="AAAA-MM-GG">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="ora">Ora</label>
+                                    <input name="ora" type="text"
+                                           class="form-control"
+                                           id="ora" placeholder="HH:MM">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="3d">3D</label>
+                                    <input name="3d" type="text"
+                                           class="form-control"
+                                           id="3d" placeholder="Si/No">
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                Close
-                            </button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
-                        </div>
                     </form>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Close
+                    </button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 </div>
 <br>
 <div class="row">
     <div class="col-1"></div>
     <div class="col">
+        {% if error != None %}
+        <div class="alert alert-danger" role="alert">
+            Errore : {{error}}
+        </div>
+        {% endif %}
         <table class="table table-hover">
             <thead>
             <tr>
@@ -85,6 +98,7 @@
                 <th scope="col">Sala</th>
                 <th scope="col">Giorno</th>
                 <th scope="col">Ora</th>
+                <th scope="col">3D</th>
                 <th scope="col">Modifica</th>
                 <th scope="col">Elimina</th>
             </tr>
@@ -97,8 +111,14 @@
                 <td>{{row.idsala}}</td>
                 <td>{{row.data}}</td>
                 <td>{{row.orario}}</td>
+                <td>{% if row.is3d == True %}
+                        Si
+                    {% else %}
+                        No
+                    {% endif %}
+                </td>
                 <td>
-                    <!-- Button trigger modal -->
+                    <!----------------------------------------------------- UPDATE ------------------------------------------------------------------>
                     <button type="button" class="btn btn-primary" data-toggle="modal"
                             data-target="#modalUpdate{{row.idproiezione}}">
                         Update
@@ -146,6 +166,13 @@
                                                                class="form-control"
                                                                id="inputTime{{row.idproiezione}}"
                                                                value="{{row.orario}}">
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label for="input3d{{row.idproiezione}}">3D</label>
+                                                        <input name="input3d{{row.idproiezione}}" type="text"
+                                                               class="form-control"
+                                                               id="input3d{{row.idproiezione}}"
+                                                               value="{{row.is3d}}">
                                                     </div>
                                                 </div>
                                             </div>
