@@ -32,10 +32,9 @@ app.secret_key = 'itsreallysecret'
 app.config['SECRET_KEY'] = 'secretcinemaucimg'
 
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
-
-engineVisistatore = create_engine('postgres+psycopg2://utentenonloggato:0000@localhost:5432/CinemaBasi')
-engineCliente = create_engine('postgres+psycopg2://clienteloggato:1234@localhost:5432/CinemaBasi')
-engineAdmin = create_engine('postgres+psycopg2://adminloggato:12345678@localhost:5432/CinemaBasi')
+engineVisistatore = create_engine('postgres+psycopg2://visitatore:0000@localhost:5432/CinemaBasi')
+engineCliente = create_engine('postgres+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi')
+engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi')
 
 metadata = MetaData()
 
@@ -597,7 +596,7 @@ def occupazione_sala():
 # STATISTICA: definizione per la funzione usata per calcolare quale genere viene preferito dai clienti
 def dividi_generi(array_generi):
     array = array_generi.split(', ')
-    array = set(array)
+    array = list(set(array))
     return array
 
 
@@ -611,11 +610,6 @@ def genere_preferito():
         join(film, proiezione.c.idfilm == film.c.idfilm)).\
         group_by(film.c.titolo, film.c.genere)).fetchall()
 
-    print("\n")
-    for b in bigliettiPerFilm:
-        print(b)
-    print("\n")
-
     #vado a prendermi e suddividermi tutti i generi
     queryGeneri = select([film.c.genere])
     generi = conn.execute(queryGeneri).fetchall()
@@ -624,36 +618,42 @@ def genere_preferito():
         temp = g[0].split(', ')
         for t in temp:
             arrayGeneri.append(t)
-    arrayGeneri = set(arrayGeneri)
+    arrayGeneri = list(set(arrayGeneri))
+
+    for n in bigliettiPerFilm:
+        generiFilmSingolo = dividi_generi(n[2])
 
     # Il contenuto di questo array all'indice 'x' corrisponde al numero di biglietti venduti al genere che troviamo allo stesso indice (x) dell'array 'generi'
     bigliettiPerGenere = [0] * len(arrayGeneri)
     for n in bigliettiPerFilm:
-        totBiglietti = n[0]
+        totBigliettiPerFilm = n[0]
         generiFilmSingolo = dividi_generi(n[2])
         i = 0
         while i < len(generiFilmSingolo):
             j = 0
             trovato = 0
-            while j < len(arrayGeneri) & trovato == 0:
+            print(generiFilmSingolo[i])
+            while j < len(arrayGeneri) and trovato == 0:
                 if generiFilmSingolo[i] == arrayGeneri[j]:
-                    bigliettiPerGenere[j] += totBiglietti
-                    i += 1
+                    bigliettiPerGenere[j] = bigliettiPerGenere[j] + totBigliettiPerFilm
+                    i = i + 1
                     trovato = 1
                 else:
-                    j += 1
+                    j = j + 1
 
-    print("\n\n\n\n")
-    print("------------------------------------------------------------")
-    print("\n\n\n\n")
-
+    totBiglietti = 0
     for n in bigliettiPerGenere:
-        print(n)
-    print("\n\n\n----------------------------")
+        totBiglietti = totBiglietti + n
+
+    percentualiPerGenere = [0] * len(arrayGeneri)
+    i = 0
+    for biglietti in bigliettiPerGenere:
+        percentualiPerGenere[i] = round((biglietti / totBiglietti) * 100, 1)
+        i = i + 1
 
     conn.close()
 
-    return render_template("/admin_pages/stats/generi_preferiti.html")
+    return render_template("/admin_pages/stats/generi_preferiti.html", arrayPerc=percentualiPerGenere, arrayPerGeneri=arrayGeneri)
 
 ##################################### GESTIONE TABELLA FILM ############################################
 
