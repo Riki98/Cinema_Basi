@@ -102,12 +102,12 @@ biglietto = Table('biglietto', metadata,
                   )
 
 attorefilm = Table('attorefilm', metadata,
-                   Column('idpersona', Integer, ForeignKey(persona.c.idpersona, ondelete='CASCADE')),
+                   Column('idattore', Integer, ForeignKey(persona.c.idpersona, ondelete='CASCADE')),
                    Column('idfilm', Integer, ForeignKey(film.c.idfilm))
                    )
 
 registafilm = Table('registafilm', metadata,
-                    Column('idpersona', Integer, ForeignKey(persona.c.idpersona, ondelete='CASCADE')),
+                    Column('idregista', Integer, ForeignKey(persona.c.idpersona, ondelete='CASCADE')),
                     Column('idfilm', Integer, ForeignKey(film.c.idfilm, ondelete='CASCADE'))
                     )
 
@@ -204,7 +204,7 @@ def home_page():
     errore = None
     if erroriCompilazione != '':
         errore = erroriCompilazione
-        erroriCompilazione=''
+        erroriCompilazione = ''
 
     oggi = date.today()
     inputGenere = None
@@ -265,9 +265,9 @@ def base_film(idFilm):
         film.c.idfilm == bindparam("idFilmRecuperato"))
     filmPage = conn.execute(queryFilm, {'idFilmRecuperato': idFilm}).fetchone()
 
-    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario, proiezione.c.is3d]).where(
-        and_(and_(proiezione.c.idfilm == bindparam("idProiezioneRecuperato"),\
-        proiezione.c.data >= datetime.date(now)), proiezione.c.orario >= datetime.time(now)))
+    queryProiezioni = select([proiezione.c.idproiezione, proiezione.c.data, proiezione.c.orario, proiezione.c.is3d]) \
+        .where(and_(proiezione.c.idfilm == bindparam("idProiezioneRecuperato"),
+                    proiezione.c.data >= datetime.date(now)))
     proiezioni = conn.execute(queryProiezioni, {'idProiezioneRecuperato': idFilm})
 
     conn.close()
@@ -430,11 +430,19 @@ def login():
     return render_template('login.html')
 
 
+log_change = 0
+
+
 # CHANGE PSW
 @app.route('/areaUtente/changePsw', methods=['GET', 'POST'])
 @login_required
 def changePsw():
+    global log_change
     conn = engineCliente.connect()
+    queryUser = select([utente.c.nome, utente.c.cognome, utente.c.email]) \
+        .where(utente.c.idutente == current_user.id)
+    userInfo = conn.execute(queryUser).fetchone()
+
     form_oldpws = str(request.form['oldpassword'])
     form_newpws = str(request.form['newpassword'])
     form_newpws2 = str(request.form['newpassword2'])
@@ -448,8 +456,13 @@ def changePsw():
             conn.execute(queryUpdate)
             conn.close()
             return redirect("/logout")
+        else:
+            log_change = 2
+    else:
+        log_change = 1
     conn.close()
-    return redirect("/areaUtente")
+    return render_template("areaUtente.html", u=userInfo,
+                           log=log_change)
 
 
 # REGISTER
@@ -486,7 +499,6 @@ def register():
     conn.close()
     User.authenticated = True
     login_user(User(myid, mailreg, 0))  # appoggio a flask_login
-    active_users.append(myid)
     return home_page()
 
 
@@ -669,10 +681,6 @@ def genere_preferito():
 def updateFilm(idFilm):
     inputTitle = request.form["inputTitle" + idFilm]
     inputGenre = request.form["inputGenre" + idFilm]
-    if request.form["input3d" + idFilm] == 'True':
-        input3d = True
-    else:
-        input3d = False
     inputPlot = request.form["inputPlot" + idFilm]
     inputStartData = request.form["inputStartDate" + idFilm]
     inputEndData = request.form["inputEndDate" + idFilm]
@@ -689,7 +697,6 @@ def updateFilm(idFilm):
     queryUpdate = update(film). \
         where(film.c.idfilm == bindparam("expectedFilm")).values(titolo=bindparam("newInputTitle"),
                                                                  genere=bindparam("newInputGenre"),
-                                                                 is3d=bindparam("newInput3d"),
                                                                  trama=bindparam("newInputPlot"),
                                                                  datainizio=bindparam("newInputStartDate"),
                                                                  datafine=bindparam("newInputEndDate"),
@@ -698,7 +705,7 @@ def updateFilm(idFilm):
                                                                  anno=bindparam("newInputYear"),
                                                                  vm=bindparam("newInputVm"))
     conn.execute(queryUpdate, expectedFilm=idFilm, newInputTitle=inputTitle, newInputGenre=inputGenre,
-                 newInput3d=input3d, newInputPlot=inputPlot,
+                 newInputPlot=inputPlot,
                  newInputStartDate=inputStartData, newInputEndDate=inputEndData, newInputDuration=inputDuration,
                  newInputCountry=inputCountry,
                  newInputYear=inputYearPubb, newInputVm=inputMinAge)
@@ -739,30 +746,29 @@ def insert_film():
                 'idfilm': idFilmDB, 'titolo': newTitle, 'genere': newGenre,
                 'trama': newPlot, 'datainizio': newStartData,
                 'datafine': newLastData, 'durata': newDuration,
-                'Paese': newCountry, 'Anno': newYearPubb,
+                'paese': newCountry, 'anno': newYearPubb,
                 'vm': bool(newMinAge)
             }
         ])
 
     ############ AGGIORNAMENTO DIRECTOR MOVIE ############
-    arrayNewDirectors = newMovDir.split(', ')
+    arrayNewDirectors = list(newMovDir.split(', '))
     for director in arrayNewDirectors:
-        queryDbDirector = select([persona.c.idpersona, persona.c.nomecognome]). \
+        queryDbDirector = select([persona.c.idpersona]). \
             where(persona.c.nomecognome == bindparam('nomeRegista'))
         dbDirector = conn.execute(queryDbDirector, nomeRegista=director).fetchall()  # eseguo la ricerca
-
         insNewDirectorMovie = registafilm.insert()
-        if dbDirector is not None:  # se è già presente
+        if dbDirector:  # se è già presente
             conn.execute(insNewDirectorMovie, [
                 {
-                    'idregista': dbDirector[0].idpersona, 'idfilm': idFilmDB
+                    'idregista': int(dbDirector[0][0]), 'idfilm': idFilmDB
                 }
             ])
         else:  # se invece non c'è
 
             # inserisco prima la persona
             queryMaxPersonaDB = select([func.max(persona.c.idpersona)])
-            idMaxPersonaDB = conn.execute(queryMaxPersonaDB).fetchone()[0] + 1
+            idMaxPersonaDB = list(conn.execute(queryMaxPersonaDB).fetchone())[0] + 1
             insNewDirector = persona.insert()
             conn.execute(insNewDirector, [
                 {
@@ -777,32 +783,34 @@ def insert_film():
             ])
 
     ############ AGGIORNAMENTO ACTOR MOVIE #############
-    arrayNewActors = newActors.split(', ')
+    arrayNewActors = list(newActors.split(', '))
     for actor in arrayNewActors:
-        queryDbActor = select([persona.c.idpersona, persona.c.nomecognome]). \
+        queryDbActor = select([persona.c.idpersona]). \
             where(persona.c.nomecognome == bindparam('nomeAttore'))
-        dbActors = conn.execute(queryDbActor, nomeAttore=actor)  # eseguo la ricerca
-        insNewActorsMovie = registafilm.insert()
-        if dbActors is not None:  # se è già presente
+        dbActors = list(conn.execute(queryDbActor, nomeAttore=actor).fetchall())  # eseguo la ricerca
+        insNewActorsMovie = attorefilm.insert()
+        if dbActors:  # se è già presente
+            print(dbActors)
             conn.execute(insNewActorsMovie, [
                 {
-                    'idattore': dbActors[0], 'idfilm': idFilmDB
+                    'idattore': int(dbActors[0][0]), 'idfilm': idFilmDB
                 }
             ])
         else:  # se invece non c'è
+
             # inserisco prima la persona
-            idMaxPersonaDB = select([func.max(persona.c.idpersona)])
-            idNewPersona = conn.execute(idMaxPersonaDB).fetchone()[0] + 1
+            queryMaxPersonaDB = select([func.max(persona.c.idpersona)])
+            idMaxPersonaDB = list(conn.execute(queryMaxPersonaDB).fetchone())[0] + 1
             insNewActors = persona.insert()
             conn.execute(insNewActors, [
                 {
-                    'idpersona': idNewPersona, 'nomecognome': actor
+                    'idpersona': idMaxPersonaDB, 'nomecognome': actor
                 }
             ])
             # poi aggiungo il collegamento ad attorefilm
             conn.execute(insNewActorsMovie, [
                 {
-                    'idattore': idNewPersona, 'idfilm': idFilmDB
+                    'idattore': idMaxPersonaDB, 'idfilm': idFilmDB
                 }
             ])
 
@@ -860,13 +868,13 @@ def tabella_proiezioni():
         films = conn.execute(queryFilms).fetchall()
         takenScreening = select([proiezione.c.idproiezione, proiezione.c.idfilm, proiezione.c.idsala, proiezione.c.data,
                                  proiezione.c.orario, proiezione.c.is3d, film.c.titolo]).where(
-            and_(proiezione.c.idfilm == film.c.idfilm, proiezione.c.data >= datetime.date(now))).order_by(desc(proiezione.c.idproiezione))
+            and_(proiezione.c.idfilm == film.c.idfilm, proiezione.c.data >= datetime.date(now))).order_by(
+            desc(proiezione.c.idproiezione))
         queryTakenScreening = conn.execute(takenScreening).fetchall()
         conn.close()
         print(queryTakenScreening)
         return render_template('admin_pages/tabelle_admin/tabella_proiezioni.html', arrayScreening=queryTakenScreening,
-                                   adminLogged=current_user.get_email(), films=films, error=errore)
-
+                               adminLogged=current_user.get_email(), films=films, error=errore)
 
 
 @app.route('/proiezione/update/<idProiezione>', methods=['GET', 'POST'])
@@ -883,7 +891,7 @@ def updateScreening(idProiezione):
     global erroriCompilazione
 
     if isinstance(inputSala, int) == False:
-        erroriCompilazione="Input della sala non corretto"
+        erroriCompilazione = "Input della sala non corretto"
         return redirect("/admin/tabella_proiezioni")
 
     if giornoScelto >= datetime.today():
@@ -990,14 +998,33 @@ def rendi_admin(idUtente):
         conn = eng.connect()
         inputMail = request.form["inputMail" + idUtente]
         inputPassword = request.form["inputPassword" + idUtente]
-        # queryUpdate = "update utente set password ="+form_newpws+" where idutente ="+ str(current_user.id)
         queryUpdate = update(utente). \
             where(utente.c.idutente == bindparam("userTaken")).values(email=bindparam("newEmail"),
                                                                       password=bindparam("newPassword"),
                                                                       ruolo=bindparam("newAdminSelected"))
         conn.execute(queryUpdate, userTaken=idUtente, newEmail=inputMail, newPassword=inputPassword, newAdminSelected=1)
         conn.close()
-        return redirect("/admin/tabella_utente")
+        return redirect("/admin/tabella_utenti")
+
+
+@app.route('/admin/ungranted/<idUtente>', methods=['GET', 'POST'])
+def degrada_admin(idUtente):
+    if current_user.ruolo == 0:
+        return redirect("/")
+    else:
+        #### revocare a un utente il permesso di essere admin
+        eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
+                            isolation_level='REPEATABLE READ')
+        conn = eng.connect()
+        inputMail = request.form["inputMail" + idUtente]
+        inputPassword = request.form["inputPassword" + idUtente]
+        queryUpdate = update(utente). \
+            where(utente.c.idutente == bindparam("userTaken")).values(email=bindparam("newEmail"),
+                                                                      password=bindparam("newPassword"),
+                                                                      ruolo=bindparam("newAdminSelected"))
+        conn.execute(queryUpdate, userTaken=idUtente, newEmail=inputMail, newPassword=inputPassword, newAdminSelected=0)
+        conn.close()
+        return redirect("/admin/tabella_utenti")
 
 
 ####################### DEBUG ##############################

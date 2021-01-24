@@ -31,11 +31,13 @@
                 <p style="color: azure">Hi {{ current_user.email }}!</p>
                 {% endif %}
             </div>
-            <div class="col-2">
+
+                <div class="col-2">
                 <form action="/" method="POST">
-                    <input type="text" class="form-control" id="inputTitle" name="inputTitle" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
-            </div>
-            <div class="col-2">
+                    <input type="text" class="form-control" id="inputTitle" name="inputTitle"
+                           aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" placeholder="Inserisci titolo">
+                </div>
+                <div class="col-2">
                     <select name="inputGenere" id="inputGenere" class="form-control" text="genere">
                         <option value="none" selected disabled hidden>
                             Ricerca per genere
@@ -44,10 +46,10 @@
                         <option>{{genere}}</option>
                         {% endfor %}
                     </select>
-            </div>
-            <div class="col">
-                <button class="btn btn-success" type="submit">Search</button>
-            </div>
+                </div>
+                <div class="col">
+                    <button class="btn btn-success" type="submit">Search</button>
+                </div>
             </form>
 
 

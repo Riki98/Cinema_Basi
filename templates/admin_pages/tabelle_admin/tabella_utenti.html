@@ -21,7 +21,7 @@
                 <th scope="col">Residenza</th>
                 <th scope="col">Numero di Telefono</th>
                 <th scope="col">Admin</th>
-                <th scope="col">Promuovi/Degrada</th>
+                <th scope="col">Concedi/Revoca</th>
             </tr>
             </thead>
             <tbody>
@@ -46,10 +46,12 @@
                 <!-- Bottone per concessione admin -->
                 <td>
                     <!-- Button trigger modal -->
-                    <button type="button" class="btn btn-primary" data-toggle="modal"
-                            data-target="#modalUpdate{{row.idutente}}">
-                        Grant
-                    </button>
+                    {% if row.ruolo == 1 %}
+                    <a href="/admin/ungrant/{{row.idutente}}">Revoca</a>
+                    {% else %}
+                    <a href="/admin/grant/{{row.idutente}}">Concedi</a>
+                    {% endif %}
+
 
                     <!-- Modal -->
                     <div class="modal fade" id="modalUpdate{{row.idutente}}" tabindex="-1"
@@ -64,7 +66,12 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <form action="{{url_for('rendi_admin', idUtente=row.idutente)}}" method="POST"
+                                    <form {% if row.ruolo== 0 %}
+                                          action="{{url_for('rendi_admin', idUtente=row.idutente)}}"
+                                          {% else %}
+                                          action="{{url_for('degrada_admin', idUtente=row.idutente)}}"
+                                          {% endif %}
+                                          method="POST"
                                           class="form-signup">
                                         <div class="row">
                                             <div class="col-1"></div>
@@ -80,7 +87,8 @@
                                                     <div class="form-group col-md-6">
                                                         <label for="inputPassword{{row.idutente}}">Password</label>
                                                         <input name="inputPassword{{row.idutente}}" type="text"
-                                                               class="form-control" id="inputPassword{{row.idutente}}">
+                                                               class="form-control"
+                                                               id="inputPassword{{row.idutente}}">
                                                     </div>
                                                 </div>
                                             </div>

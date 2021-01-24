@@ -93,9 +93,9 @@
     <div class="col-1"></div>
     <div class="col">
         {% if error != None %}
-            <div class="alert alert-danger" role="alert">
-                Errore : {{error}}
-            </div>
+        <div class="alert alert-danger" role="alert">
+            Errore : {{error}}
+        </div>
         {% endif %}
         <table class="table table-hover">
             <thead>
@@ -118,9 +118,9 @@
                 <td>{{row.data}}</td>
                 <td>{{row.orario}}</td>
                 <td>{% if row.is3d == True %}
-                        Si
+                    Si
                     {% else %}
-                        No
+                    No
                     {% endif %}
                 </td>
                 <td>
@@ -149,54 +149,56 @@
                                         <div class="row">
                                             <div class="col-1"></div>
                                             <div class="col">
-                                                <div class="form-row">
-                                                    <div class="form-group col-md-6">
-                                                        <label for="inputRoom{{row.idproiezione}}">Sala</label>
-                                                        <input name="inputRoom{{row.idproiezione}}" type="text"
-                                                               class="form-control"
-                                                               id="inputRoom{{row.idproiezione}}"
-                                                               value="{{row.idsala}}">
-                                                    </div>
-                                                </div>
-                                                <div class="form-row">
-                                                    <label for="inputDay{{row.idproiezione}}">Giorno</label>
-                                                    <input name="inputDay{{row.idproiezione}}" type="text"
+                                                <div class="form-group col-md-6">
+                                                    <label for="inputRoom{{row.idproiezione}}">Sala</label>
+                                                    <input name="inputRoom{{row.idproiezione}}" type="text"
                                                            class="form-control"
-                                                           id="inputDay{{row.idproiezione}}"
-                                                           value="{{row.data}}">
+                                                           id="inputRoom{{row.idproiezione}}"
+                                                           value="{{row.idsala}}">
                                                 </div>
-                                                <div class="form-row">
-                                                    <div class="form-group col-md-6">
-                                                        <label for="inputTime{{row.idproiezione}}">Ora</label>
-                                                        <input name="inputTime{{row.idproiezione}}" type="text"
-                                                               class="form-control"
-                                                               id="inputTime{{row.idproiezione}}"
-                                                               value="{{row.orario}}">
-                                                    </div>
-                                                    <div class="form-group col-md-6">
-                                                        <label for="input3d{{row.idproiezione}}">3D</label>
-                                                        <select name="input3d{{row.idproiezione}}" type="text"
-                                                               class="form-control"
-                                                               id="input3d{{row.idproiezione}}">
-                                                            <option value="none" selected hidden>
-                                                                {% if row.is3d == True %}
-                                                                    Si
-                                                                {% else %}
-                                                                    No
-                                                                {% endif %}
-                                                            </option>
-                                                            <option value="Si">Si</option>
-                                                            <option value="No">No</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
+                                                <label for="inputDay{{row.idproiezione}}">Giorno</label>
+                                                <input name="inputDay{{row.idproiezione}}" type="text"
+                                                       class="form-control"
+                                                       id="inputDay{{row.idproiezione}}"
+                                                       value="{{row.data}}">
                                             </div>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                                Close
-                                            </button>
-                                            <button type="submit" class="btn btn-primary">Save changes</button>
+                                        <div class="co-1l"></div>
+
+                                        <div class="row">
+                                            <div class="col-1"></div>
+                                            <div class="col">
+                                                <div class="form-group col-md-6">
+                                                    <label for="inputTime{{row.idproiezione}}">Ora</label>
+                                                    <input name="inputTime{{row.idproiezione}}" type="text"
+                                                           class="form-control"
+                                                           id="inputTime{{row.idproiezione}}"
+                                                           value="{{row.orario}}">
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label for="input3d{{row.idproiezione}}">3D</label>
+                                                    <select name="input3d{{row.idproiezione}}" type="text"
+                                                            class="form-control"
+                                                            id="input3d{{row.idproiezione}}">
+                                                        <option value="none" selected hidden>
+                                                            {% if row.is3d == True %}
+                                                            Si
+                                                            {% else %}
+                                                            No
+                                                            {% endif %}
+                                                        </option>
+                                                        <option value="Si">Si</option>
+                                                        <option value="No">No</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="co-1l"></div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                            </div>
                                         </div>
                                     </form>
                                 </div>

@@ -3,14 +3,14 @@ $( document ).ready(function() {
     if($('#errorLog').val() != null){
         $('#modalSignin').click();
     }
-    $('#inputTitle').val("Inserire titolo");
+    if($('#errorLog1').val() != null){
+        $('#changePsd').click();
+    }
+    if($('#errorLog2').val() != null){
+        $('#changePsd').click();
+    }
 });
 
-$('#inputTitle').on('click', function (){
-    $('#inputTitle').val("");
-});
-
-$('#')
 
 
 
