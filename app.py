@@ -1,4 +1,5 @@
 # HTML import
+import os
 from operator import and_
 
 import json
@@ -6,9 +7,9 @@ from datetime import datetime, date
 from sqlite3.dbapi2 import Binary
 
 import flask
-from flask import Flask, render_template, request, json, redirect, url_for, session
+from flask import Flask, render_template, request, json, redirect, url_for, flash, send_from_directory
 
-import eel
+from werkzeug.utils import secure_filename
 
 # DB e Users import
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
@@ -27,6 +28,12 @@ import base64
 
 from sqlalchemy.dialects.postgresql import psycopg2, BYTEA
 from sqlalchemy.orm import sessionmaker
+
+UPLOAD_FOLDER = 'C:/Users/Riccardo/Documents/PyCharmProjects/Cinema_Basi/static/img/Locandine/'
+ALLOWED_EXTENSIONS = {'png'}
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 app = Flask(__name__)
 app.secret_key = 'itsreallysecret'
@@ -50,8 +57,7 @@ film = Table('film', metadata,
              Column('paese', String),
              Column('anno', Integer),
              Column('vm', Integer),
-             Column('shown', Boolean),
-             Column('img', BYTEA)
+             Column('shown', Boolean)
              )
 
 utente = Table('utente', metadata,
@@ -712,6 +718,13 @@ def updateFilm(idFilm):
     conn.close()
     return redirect("/admin")
 
+def immagini_permesse(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
 
 @app.route('/film/insert', methods=['GET', 'POST'])
 def insert_film():
@@ -726,7 +739,6 @@ def insert_film():
     newMinAge = request.form["newMinAge"]
     newMovDir = request.form["newMovDir"]
     newActors = request.form["newActors"]
-    newImage = request.form["newImage"]
 
     conn = engineAdmin.connect()
 
@@ -814,18 +826,21 @@ def insert_film():
                 }
             ])
 
-    ###### SALVATAGGIO DELLA LOCANDINA
-    # imageInsert = film.insert()
-    # conn.execute(imageInsert, [
-    #    {
-    #        'img' : newImage
-    #    }
-    # ])
-    # print("Immagine salvata")
-
     conn.close()
 
-    conn.close()
+    #inserimento locandine
+    if 'newImage' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.form['newImage']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    if file and immagini_permesse(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return redirect(url_for('uploaded_file',
+                                filename=filename))
 
     return redirect("/admin")
 
