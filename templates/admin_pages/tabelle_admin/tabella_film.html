@@ -28,7 +28,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form action="/film/insert" method="POST" class="form-signup">
+                    <form action="/film/insert" method="POST" class="form-signup" enctype="multipart/form-data">
                         <div class="row">
                             <div class="col">
                                 <div class="form-row">
@@ -118,8 +118,10 @@
                                     </div>
                                 </div>
                                 <div class="from-row">
-                                    <label for="newImage">Inserisci locandina (420x600)</label>
-                                    <input name="newImage" type="file"
+                                    <label for="newImage">Inserisci locandina (420x600) </label>
+                                    <br>
+                                    <label for="newImage">Il titolo del film e il nome del file devono essere UGUALI</label>
+                                    <input name=file type="file"
                                            class="form-control"
                                            id="newImage">
                                 </div>
@@ -130,7 +132,7 @@
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                 Close
                             </button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
+                            <button type="submit" value=Upload class="btn btn-primary">Save changes</button>
                         </div>
                     </form>
                 </div>
@@ -142,6 +144,11 @@
 <div class="row">
     <div class="col-1"></div>
     <div class="col">
+        {% if error != '' and error != None %}
+        <div class="alert alert-danger" role="alert">
+            Errore : {{error}}
+        </div>
+        {% endif %}
         <table class="table table-hover">
             <thead>
             <tr>
