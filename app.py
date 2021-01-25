@@ -42,8 +42,7 @@ app.config['SECRET_KEY'] = 'secretcinemaucimg'
 # ATTENZIONE!!! DA CAMBIARE A SECONDA DEL NOME UTENTE E NOME DB IN POSTGRES
 engineVisistatore = create_engine('postgres+psycopg2://visitatore:0000@localhost:5432/CinemaBasi')
 engineCliente = create_engine('postgres+psycopg2://clienteloggato:1599@localhost:5432/CinemaBasi')
-engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
-                            isolation_level='REPEATABLE READ')
+engineAdmin = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi')
 
 metadata = MetaData()
 
@@ -568,12 +567,13 @@ def occupazione_sala():
         arrayPostiTot.append([b["idsala"], b["numfila"] * b["numcolonne"]])
 
     bigliettiPerProiezione = conn.execute(select(
-        [func.count(biglietto.c.idproiezione), proiezione.c.idsala, biglietto.c.idproiezione,
+        [func.count(biglietto.c.idproiezione), proiezione.c.idsala,
          proiezione.c.idfilm]).select_from(
         biglietto.join(proiezione, biglietto.c.idproiezione == proiezione.c.idproiezione).
             join(sala, proiezione.c.idsala == sala.c.idsala)).
-                                          group_by(proiezione.c.idproiezione, biglietto.c.idproiezione,
+                                          group_by(proiezione.c.idproiezione,
                                                    proiezione.c.idfilm)).fetchall()
+    print(bigliettiPerProiezione)
 
     listaFilms = conn.execute(select([film]).order_by(film.c.idfilm)).fetchall()
     totPostiFilm = []
@@ -760,7 +760,6 @@ def insert_film():
         isThereQuery = select([film.c.titolo, film.c.anno]). \
             where(and_(film.c.anno == bindparam('annoFilm'), film.c.titolo == bindparam('titoloFilm')))
         isThere = conn.execute(isThereQuery, titoloFilm=newTitle, annoFilm=newYearPubb).fetchone()
-
         if isThere is None:
             # QUERY DI AGGIUNTA DI UN FILM
             insNewFilm = film.insert()
@@ -773,7 +772,6 @@ def insert_film():
                     'vm': bool(newMinAge)
                 }
             ])
-
         ############ AGGIORNAMENTO DIRECTOR MOVIE ############
         arrayNewDirectors = list(newMovDir.split(', '))
         for director in arrayNewDirectors:
@@ -804,7 +802,6 @@ def insert_film():
                         'idregista': idMaxPersonaDB, 'idfilm': idFilmDB
                     }
                 ])
-
         ############ AGGIORNAMENTO ACTOR MOVIE #############
         arrayNewActors = list(newActors.split(', '))
         for actor in arrayNewActors:
@@ -836,9 +833,7 @@ def insert_film():
                         'idattore': idMaxPersonaDB, 'idfilm': idFilmDB
                     }
                 ])
-
         conn.close()
-
         # inserimento locandine
         if 'file' not in request.files:
             flash('No file part')
@@ -893,7 +888,9 @@ def tabella_proiezioni():
         if erroriCompilazione != '':
             errore = erroriCompilazione
             erroriCompilazione = ''
-        conn = engineAdmin.connect()
+        eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
+                            isolation_level='REPEATABLE READ')
+        conn = eng.connect()
         queryFilms = select([film.c.titolo])
         films = conn.execute(queryFilms).fetchall()
         takenScreening = select([proiezione.c.idproiezione, proiezione.c.idfilm, proiezione.c.idsala, proiezione.c.data,
@@ -1037,7 +1034,9 @@ def rendi_admin(idUtente):
             return redirect("/")
         else:
             #### rendere un utente admin
-            conn = engineAdmin.connect()
+            eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
+                                isolation_level='REPEATABLE READ')
+            conn = eng.connect()
             inputMail = request.form["inputMail" + idUtente]
             inputPassword = request.form["inputPassword" + idUtente]
             queryUpdate = update(utente). \
@@ -1062,7 +1061,9 @@ def degrada_admin(idUtente):
             return redirect("/")
         else:
             #### revocare a un utente il permesso di essere admin
-            conn = engineAdmin.connect()
+            eng = create_engine('postgres+psycopg2://adminloggato:12358@localhost:5432/CinemaBasi',
+                                isolation_level='REPEATABLE READ')
+            conn = eng.connect()
             inputMail = request.form["inputMail" + idUtente]
             inputPassword = request.form["inputPassword" + idUtente]
             queryUpdate = update(utente). \
